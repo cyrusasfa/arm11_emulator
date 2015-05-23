@@ -33,3 +33,6 @@ assemble
 *.nav
 *.toc
 
+#ignore the weird one 
+
+.DS_Store
