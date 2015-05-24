@@ -22,33 +22,54 @@
 #define cpsr (registers[16])
 
 char *memory; //Array to represent the memory
-int registers [17];
+char **registers;
 
-int parseInstructions(FILE *program) {
+void initializeMemories() {
+  memory    = (char *) malloc(MEM_SIZE * sizeof(char));
+  registers = (char **) malloc(sizeof(char *) * 17);
+  //Allocate space for 17 reg pointers
+  
+  for (int i=0; i < MEM_SIZE; i++) {
+    memory[i] = 0;
+  }
+  //Set all memory locations to 0
+  
+  for (int i=0; i < 17; i++) {
+    registers[i] = (char *) malloc(sizeof(char) * 32); 
+  }
+  //Allocate 32 "fake" bits per reg
+  
+  for (int rNum=0; rNum < 17; rNum++) {
+    for (int bit=0; bit < 32; bit++) {
+      registers[rNum][bit] = 0;
+    }
+  }
+  //Set all the registers to 0
+}
 
+int parseInstructions(const char *fileName) {
+
+  FILE *program;
+  program  = fopen(fileName, "rb");
+  assert (program);
   int ret = fread(memory, 1, MEM_SIZE, program);
 
   for(int i=0; i < ret; i++) {
     printf("%u\n", memory[i]);
   }
 
+  fclose(program);
   return ret;
 }
 
 int main(int argc, char **argv) {
-  printf("%i\n", argc);
   assert (argc == 2);
   const char *fileName = argv[1]; 
-  printf("%s\n", fileName);
   
-  memory = malloc(MEM_SIZE * sizeof(char));
+  initializeMemories();
+  //Set all memory locations and registers to 0 
+  parseInstructions(fileName);
+  //Parse binary file and upload contents into memory
   
-  FILE *program;
-  program  = fopen(fileName, "r");
-  assert (program);
-  parseInstructions(program);
-  fclose(program);
-  
-  free(memory); 
   return EXIT_SUCCESS; 
 }
