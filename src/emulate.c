@@ -71,5 +71,12 @@ int main(int argc, char **argv) {
   parseInstructions(fileName);
   //Parse binary file and upload contents into memory
   
+  //Free up the memory used by the machine state
+  for (int rNum=0; rNum < 17; rNum++) {
+    free(registers[rNum]); 
+  }
+  free(registers);
+  free(memory);
+  
   return EXIT_SUCCESS; 
 }
