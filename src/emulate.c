@@ -113,4 +113,21 @@ void execute(const char *decoded) {
   if (!decoded) {
     return;
   }
-}
+
+int main(int argc, char **argv) {
+  assert (argc == 2);
+  const char *fileName = argv[1]; 
+  
+  initializeMemories();
+  //Set all memory locations and registers to 0 
+  parseInstructions(fileName);
+  //Parse binary file and upload contents into memory
+  
+  //Free up the memory used by the machine state
+  for (int rNum=0; rNum < 17; rNum++) {
+    free(registers[rNum]); 
+  }
+  free(registers);
+  free(memory);
+  
+  return EXIT_SUCCESS; 
