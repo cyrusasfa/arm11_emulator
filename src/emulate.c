@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -24,45 +25,45 @@
 #define pc  (registers[15])
 #define cpsr (registers[16])
 
-char *memory; //Array to represent the memory
-int **registers; // represents the registers
+uint8_t *memory; //Array to represent the memory
+uint32_t registers[NUM_REGS]; // represents the registers
 
 void initializeMemories();
 
-int parseInstructions(const char *filename);
+int loadMemory(const char *filename);
 
-char* fetch(int address);
+uint32_t fetch(int address);
 
-char* decode(const char *fetched);
+void* decode(uint32_t *fetched);
 
-void execute(const char *decoded);
+void execute(void *decoded);
 
 int main(int argc, char **argv) {
   assert (argc == 2);
   const char *fileName = argv[1]; 
   
   initializeMemories();
-  //Set all memory locations and registers to 0 
-  parseInstructions(fileName);
-  //Parse binary file and upload contents into memory
+    //Set all memory locations and registers to 0 
+  loadMemory(fileName);
+    //Parse binary file and upload contents into memory
   
-  char *fetched = NULL;
-  char *decoded = NULL;
+  uint32_t fetched = 0;
+  void *decoded = NULL;
   
-  while (strcmp(decoded, "halt") != 0) {
+  while (decoded) {
     // execute(decoded);
     // decoded = decode(fetched);
     // fetched = fetch(pc);
     // pc += 4;    
   }
   
+  free(memory); 
+    
   return EXIT_SUCCESS; 
 }
 
 void initializeMemories() {
-  memory    = (char *) malloc(MEM_SIZE * sizeof(char));
-  registers = (int **) malloc(sizeof(int *) * NUM_REGS);
-  //Allocate space for 17 reg pointers
+  memory    = (uint8_t *) malloc(MEM_SIZE * sizeof(uint8_t));
   
   for (int i=0; i < MEM_SIZE; i++) {
     memory[i] = 0;
@@ -70,19 +71,12 @@ void initializeMemories() {
   //Set all memory locations to 0
   
   for (int i=0; i < NUM_REGS; i++) {
-    registers[i] = (char *) malloc(sizeof(char) * REG_SIZE); 
+    registers[i] = 0; 
   }
-  //Allocate 32 "fake" bits per reg
-  
-  for (int rNum=0; rNum < NUM_REGS; rNum++) {
-    for (int bit=0; bit < REG_SIZE; bit++) {
-      registers[rNum][bit] = 0;
-    }
-  }
-  //Set all the registers to 0
+  //Set all registers to 0
 }
 
-int parseInstructions(const char *fileName) {
+int loadMemory(const char *fileName) {
 
   FILE *program;
   program  = fopen(fileName, "rb");
@@ -97,22 +91,22 @@ int parseInstructions(const char *fileName) {
   return ret;
 }
 
-char* fetch(int address) {
-  char* result;
-  memcpy(result, memory[address], 4);
-  return result;
+uint32_t fetch(int address) {
+  return 0;
 }
 
-char* decode(const char *fetched) {
+void* decode(uint32_t *fetched) {
   if (!fetched) {
     return NULL; 
-  }   
+  }
+  return NULL; 
 }
 
-void execute(const char *decoded) {
+void execute(void *decoded) {
   if (!decoded) {
     return;
   }
+<<<<<<< HEAD
 
 int main(int argc, char **argv) {
   assert (argc == 2);
@@ -131,4 +125,6 @@ int main(int argc, char **argv) {
   free(memory);
   
   return EXIT_SUCCESS; 
+=======
+>>>>>>> ba73d95a5ae73616cd8b9d8f9ea8299afca68c77
 }
