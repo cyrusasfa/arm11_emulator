@@ -32,9 +32,9 @@ void initializeMemories();
 
 int loadMemory(const char *filename);
 
-uint32_t fetch(int address);
+uint32_t fetch(int address); 
 
-void* decode(uint32_t *fetched);
+void* decode(uint8_t fetched[4]);
 
 void execute(void *decoded);
 
@@ -47,15 +47,18 @@ int main(int argc, char **argv) {
   loadMemory(fileName);
     //Parse binary file and upload contents into memory
   
-  uint32_t fetched = 0;
-  void *decoded = NULL;
+  uint32_t fetched;
+  //void *decoded = NULL;
   
-  while (decoded) {
+  //while () {
     // execute(decoded);
     // decoded = decode(fetched);
     // fetched = fetch(pc);
     // pc += 4;    
-  }
+  //}
+
+  fetched = fetch(0);
+  printf("%u", fetched);
   
   free(memory); 
     
@@ -80,22 +83,24 @@ int loadMemory(const char *fileName) {
 
   FILE *program;
   program  = fopen(fileName, "rb");
+  
   assert (program);
   int ret = fread(memory, 1, MEM_SIZE, program);
-
-  for(int i=0; i < ret; i++) {
-    printf("%u\n", memory[i]);
-  }
 
   fclose(program);
   return ret;
 }
 
 uint32_t fetch(int address) {
-  return 0;
+  uint32_t ret = 0;
+  for(int i=3; i > 0; --i) {
+    ret += memory[address+i];
+    ret = ret << 8;
+  }
+  return ret += memory[address];
 }
 
-void* decode(uint32_t *fetched) {
+void* decode(uint8_t fetched[4]) {
   if (!fetched) {
     return NULL; 
   }
@@ -106,4 +111,4 @@ void execute(void *decoded) {
   if (!decoded) {
     return;
   }
-
+}
