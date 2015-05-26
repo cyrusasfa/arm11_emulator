@@ -108,11 +108,27 @@ uint32_t fetch(int address) {
   return ret += memory[address];
 }
 
+// decodes fetched instruction and calls appropriate execution function
 void decodeAndExecute(uint32_t fetched) {
   if (!fetched) {
     return NULL; 
   }
-  return NULL; 
+  
+  if (readbit(fetched, 27) == 1) {
+    branch(fetched);
+  }
+  else if (readbit(fetched, 26) == 1) {
+      singledatatransfer(fetched);
+  }
+  else if (readbit(fetched, 25) == 0 && readbit(fetched, 4) == 1 
+    && readbit(fetched, 7) == 1) {
+      //This works because if bit 25 is 0 in data processing 
+      //then either bit 4 or bit 7 will be 0 as well 
+    multiply(fetched);
+  }
+  else {
+    dataprocessing(fetched);
+  }
 }
 
 void dataprocessing(int instruction){
