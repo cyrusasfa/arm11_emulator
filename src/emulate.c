@@ -32,25 +32,25 @@ void initializeMemories();
 
 int parseInstructions(const char *filename);
 
-char* fetch(int address);
+uint32_t fetch(int address);
 
-char* decode(const char *fetched);
+void* decode(uint32_t *fetched);
 
-void execute(const char *decoded);
+void execute(void *decoded);
 
 int main(int argc, char **argv) {
   assert (argc == 2);
   const char *fileName = argv[1]; 
   
-  void initializeMemories();
+  initializeMemories();
     //Set all memory locations and registers to 0 
-  void parseInstructions(fileName);
+  parseInstructions(fileName);
     //Parse binary file and upload contents into memory
   
-  uint32_t *fetched = NULL;
-  uint32_t *decoded = NULL;
+  uint32_t fetched = 0;
+  void *decoded = NULL;
   
-  while (decoded != 0) {
+  while (decoded) {
     // execute(decoded);
     // decoded = decode(fetched);
     // fetched = fetch(pc);
@@ -91,21 +91,19 @@ int parseInstructions(const char *fileName) {
   return ret;
 }
 
-uint8_t* fetch(int address) {
-  return (memory+address);
+uint32_t fetch(int address) {
+  return 0;
 }
 
-char* decode(const char *fetched) {
+void* decode(uint32_t *fetched) {
   if (!fetched) {
     return NULL; 
   }
-  
-     
+  return NULL; 
 }
 
-void execute(const char *decoded) {
+void execute(void *decoded) {
   if (!decoded) {
     return;
   }
-
-
+}
