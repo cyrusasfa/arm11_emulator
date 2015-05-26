@@ -30,7 +30,7 @@ uint32_t registers[NUM_REGS]; // represents the registers
 
 void initializeMemories();
 
-int parseInstructions(const char *filename);
+int loadMemory(const char *filename);
 
 uint32_t fetch(int address);
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   
   initializeMemories();
     //Set all memory locations and registers to 0 
-  parseInstructions(fileName);
+  loadMemory(fileName);
     //Parse binary file and upload contents into memory
   
   uint32_t fetched = 0;
@@ -76,7 +76,7 @@ void initializeMemories() {
   //Set all registers to 0
 }
 
-int parseInstructions(const char *fileName) {
+int loadMemory(const char *fileName) {
 
   FILE *program;
   program  = fopen(fileName, "rb");
