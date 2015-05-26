@@ -34,9 +34,7 @@ int loadMemory(const char *filename);
 
 uint32_t fetch(int address); 
 
-void* decode(uint8_t fetched[4]);
-
-void execute(void *decoded);
+void decodeAndExecute(uint32_t fetched);
 
 int main(int argc, char **argv) {
   assert (argc == 2);
@@ -50,15 +48,15 @@ int main(int argc, char **argv) {
   uint32_t fetched;
   //void *decoded = NULL;
   
-  //while () {
+  while (1) {
     // execute(decoded);
     // decoded = decode(fetched);
-    // fetched = fetch(pc);
-    // pc += 4;    
-  //}
+    fetched = fetch(pc);
+    printf("%u", fetched);
+     pc += 4;    
+  }
 
-  fetched = fetch(0);
-  printf("%u", fetched);
+  //printf("%u", fetched);
   
   free(memory); 
     
@@ -100,15 +98,10 @@ uint32_t fetch(int address) {
   return ret += memory[address];
 }
 
-void* decode(uint8_t fetched[4]) {
-  if (!fetched) {
-    return NULL; 
-  }
-  return NULL; 
-}
 
-void execute(void *decoded) {
-  if (!decoded) {
-    return;
+
+void decodeAndExecute(uint32_t fetched) {
+  if (!fetched) {
+    return null;
   }
 }
