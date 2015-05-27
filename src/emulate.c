@@ -75,36 +75,6 @@ int registers[17];
 
 void dataprocessing(int);
 
-void dataprocessing(int instruction){
-	int o2;
-	int bitS     = 20;
-	int bitI     = 25;
-	int immstrt  = 0;
-	int immlgth  = 8;
-	int rotstrt  = 8;
-	int rotlngth = 4;
-  int rmstrt   = 0;
-  int rmlngth  = 4;
-	bool flagS   = false;
-	if (read_bit(instruction, bitS)) {
-		flagS = true;
-		printf("Set flag S");
-	}
-	if (read_bit(instruction, bitI)){ // I = 1 if operand 2 is an immediat value
-        printf("I = 1\n");
-		o2 = extract_bits(instruction)
-		unsigned int imm    = extract_bits(instruction, imm, immlgth);
-		unsigned int rotate = extract_bits(instruction, rotstrt, rotlngth);
-		rotate <<= 2;
-		o2 = rotatateright(imm, rotate);
-		printf("o2 = %d\n", o2);
-
-	} else { // I = 0  we shift register
-        printf("I = 0\n");
-        int rm = extract_bits(instruction, rmstrt, rmlngth);
-        
-    }
-
 void initializeMemories() {
   memory = (uint8_t *) malloc(MEM_SIZE * sizeof(uint8_t));
   
@@ -127,10 +97,6 @@ int loadMemory(const char *fileName) {
   assert (program);
   int ret = fread(memory, 1, MEM_SIZE, program);
 
-}
-
-bool read_bit(int instruction, int index) { //reading start from right to left. begin with index 0
-	return extract_bits(instrc, index, 1) == 1;
 }
 
 uint32_t fetch(int address) {
