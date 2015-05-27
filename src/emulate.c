@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -27,6 +28,8 @@
 
 uint8_t *memory; //Array to represent the memory
 uint32_t registers[NUM_REGS]; // represents the registers
+_Bool carryout;
+uint32_t instlgth = 32;
 
 void initializeMemories();
 
@@ -40,11 +43,22 @@ void execute(void *decoded);
 
 void dataprocessing(int);
 
-bool readbit(int instruction, int index);
+_Bool readbit(int instruction, int index);
 
 int extractbits(int instruction, int start, int length);
 
 int rotatateright(int x, int y);
+
+int lsl(int reg, int shiftvalue);
+
+int lsr(int reg, int shiftvalue);
+
+int asr(int reg, int shiftvalue);
+
+int ror(int reg, int shiftvalue);
+
+
+
 
 int main(int argc, char **argv) {
   assert (argc == 2);
@@ -117,25 +131,23 @@ void decodeAndExecute(uint32_t fetched) {
 
 void dataprocessing(int instruction){
   int o2;
-  int bitS         = 20;
-  int bitI         = 25;
-  int immstrt      = 0;
-  int immlgth      = 8;
-  int rotstrt      = 8;
-  int rotlngth     = 4;
-  int rmstrt       = 0;
-  int rmlngth      = 4;
-  int operand2bit4 = 4;
-  bool flagS       = false;
-  uint32_t instlgth= 32;
+  int bitS          = 20;
+  int bitI          = 25;
+  int immstrt       = 0;
+  int immlgth       = 8;
+  int rotstrt       = 8;
+  int rotlngth      = 4;
+  int rmstrt        = 0;
+  int rmlngth       = 4;
+  int operand2bit4  = 4;
+  _Bool flagS       = false;
   if (readbit(instruction, bitS)) {
     flagS = true;
     printf("Set flag S\n");
   }
   if (readbit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
-        printf("I = 1\n");
-    o2                  = extractbits(instruction)
-    unsigned int imm    = extractbits(instruction, imm, immlgth);
+    printf("I = 1\n");
+    unsigned int imm    = extractbits(instruction, immstrt, immlgth);
     unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
     rotate              <<= 2;
     o2                  = rotatateright(imm, rotate);
@@ -147,12 +159,12 @@ void dataprocessing(int instruction){
         int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
         int shiftvalue = 0;
         if (readbit(instruction, operand2bit4)) { // if bit 4 is 1
-            int rs = extractbits(instrc, 8, 4);
-            int valrs = reg[rs]; // value of the register
+            int rs = extractbits(instruction, 8, 4);
+            int valrs = registers[rs]; // value of the register
             int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
             shiftvalue = bottombyte;
         } else { // if bit 4 is 0
-            int integer = extractbits(instruction, 7, 5);
+            shiftvalue = extractbits(instruction, 7, 5);
         }
         switch (shifttype) {
           case (0) :
@@ -201,7 +213,7 @@ int lsr(int reg, int shiftvalue) {
 
 int asr(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
-    bool lastbit = readbit(reg, instlgth - 1);
+    _Bool lastbit = readbit(reg, instlgth - 1);
     carryout = readbit(reg, shiftvalue - 1);
     int reglsr = lsr(reg, shiftvalue);
     if (lastbit) {
@@ -215,7 +227,7 @@ int asr(int reg, int shiftvalue) {
   }
 }
 
-int lsl(int reg, int shiftvalue) {
+int ror(int reg, int shiftvalue) {
   return rotatateright(reg, shiftvalue);
 }
 
@@ -227,8 +239,8 @@ int lsl(int reg, int shiftvalue) {
 
 
 //reading start from right to left. begin with index 0
-bool readbit(int instruction, int index) { 
-	return extractbits(instrc, index, 1) == 1;
+_Bool readbit(int instruction, int index) { 
+	return extractbits(instruction, index, 1) == 1;
 }
 
 // start is the start bit from where we extract the bits
@@ -242,7 +254,7 @@ int extractbits(int instruction, int start, int length) {
   } else {
       instruction >>= start;
       int mask = (1 << length) - 1;
-      instruction = mask & instruction;     
+      return mask & instruction;     
   }
 }
 
@@ -251,7 +263,7 @@ int rotatateright(int x, int y) {
 	   //carryout = readbit(x, y-1);
 	   int firstYbits = x << (32 - y);
 	   int lastbits = x >> y;
-	   retun (firstYbits | lastbits);
+	   return (firstYbits | lastbits);
    } else {
 	  return x;
    }
