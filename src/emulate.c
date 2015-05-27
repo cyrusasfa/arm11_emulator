@@ -32,17 +32,14 @@ int loadMemory(const char *filename);
 uint32_t fetch(int address); 
 
 void decodeAndExecute(uint32_t fetched);
-<<<<<<< HEAD
-=======
 
 void execute(void *decoded);
->>>>>>> d4fc5d305c5e2b4c94a2f427a6c6b7c75f19717d
 
 void dataprocessing(int);
 
-bool readbit(int instruction, int index);
+bool read_bit(int instruction, int index);
 
-int extractbits(int instruction, int start, int length);
+int extract_bits(int instruction, int start, int length);
 
 int rotatateright(int x, int y);
 
@@ -73,7 +70,6 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS; 
 }
 
-<<<<<<< HEAD
 char memory[64 * 1024]; // 1 char = 1 byte 
 int registers[17]; 
 
@@ -90,25 +86,25 @@ void dataprocessing(int instruction){
   int rmstrt   = 0;
   int rmlngth  = 4;
 	bool flagS   = false;
-	if (readbit(instruction, bitS)) {
+	if (read_bit(instruction, bitS)) {
 		flagS = true;
 		printf("Set flag S");
 	}
-	if (readbit(instruction, bitI)){ // I = 1 if operand 2 is an immediat value
+	if (read_bit(instruction, bitI)){ // I = 1 if operand 2 is an immediat value
         printf("I = 1\n");
-		o2 = extractbits(instruction)
-		unsigned int imm    = extractbits(instruction, imm, immlgth);
-		unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
+		o2 = extract_bits(instruction)
+		unsigned int imm    = extract_bits(instruction, imm, immlgth);
+		unsigned int rotate = extract_bits(instruction, rotstrt, rotlngth);
 		rotate <<= 2;
 		o2 = rotatateright(imm, rotate);
 		printf("o2 = %d\n", o2);
 
 	} else { // I = 0  we shift register
         printf("I = 0\n");
-        int rm = extractbits(instruction, rmstrt, rmlngth);
+        int rm = extract_bits(instruction, rmstrt, rmlngth);
         
     }
-=======
+
 void initializeMemories() {
   memory = (uint8_t *) malloc(MEM_SIZE * sizeof(uint8_t));
   
@@ -130,16 +126,13 @@ int loadMemory(const char *fileName) {
   
   assert (program);
   int ret = fread(memory, 1, MEM_SIZE, program);
->>>>>>> d4fc5d305c5e2b4c94a2f427a6c6b7c75f19717d
 
 }
 
-<<<<<<< HEAD
-bool readbit(int instruction, int index) { //reading start from right to left. begin with index 0
-	return extractbits(instrc, index, 1) == 1;
+bool read_bit(int instruction, int index) { //reading start from right to left. begin with index 0
+	return extract_bits(instrc, index, 1) == 1;
 }
 
-=======
 uint32_t fetch(int address) {
   uint32_t ret = 0;
   for(int i = 3; i > 0; --i) {
@@ -150,33 +143,19 @@ uint32_t fetch(int address) {
 }
 
 // decodes fetched instruction and calls appropriate execution function
->>>>>>> d4fc5d305c5e2b4c94a2f427a6c6b7c75f19717d
 void decodeAndExecute(uint32_t fetched) {
   if (!fetched) {
     return null;
   }
-<<<<<<< HEAD
-}
 
-int extractbits(int instruction, int start, int length) {      // start is the start bit from where we extract the bits 
-  if (start > 31 || start < 0) {                           // length is how many bits we want to extract
-	  printf("%s\n", "extract bits error");                    // instructionm is from where we want to extract
-	  printf("start = %d, length = %d\n", start, length);
-	  return 0;
-  } else {
-    instruction >>= start;
-    int mask = (1 << length) - 1;
-    instruction = mask & instruction;     
-=======
-  
-  if (readbit(fetched, 27) == 1) {
+  if (read_bit(fetched, 27) == 1) {
     branch(fetched);
   }
-  else if (readbit(fetched, 26) == 1) {
+  else if (read_bit(fetched, 26) == 1) {
       singledatatransfer(fetched);
   }
-  else if (readbit(fetched, 25) == 0 && readbit(fetched, 4) == 1 
-    && readbit(fetched, 7) == 1) {
+  else if (read_bit(fetched, 25) == 0 && readbit(fetched, 4) == 1 
+    && read_bit(fetched, 7) == 1) {
       //This works because if bit 25 is 0 in data processing 
       //then either bit 4 or bit 7 will be 0 as well 
     multiply(fetched);
@@ -186,7 +165,7 @@ int extractbits(int instruction, int start, int length) {      // start is the s
   }
 }
 
-void dataprocessing(int instruction){
+void data_processing(uint32_t instruction){
   int o2;
   int bitS         = 20;
   int bitI         = 25;
@@ -198,28 +177,27 @@ void dataprocessing(int instruction){
   int rmlngth      = 4;
   int operand2bit4 = 4;
   bool flagS       = false;
-  if (readbit(instruction, bitS)) {
+  if (read_bit(instruction, bitS)) {
     flagS = true;
     printf("Set flag S");
->>>>>>> d4fc5d305c5e2b4c94a2f427a6c6b7c75f19717d
   }
-  if (readbit(instruction, bitI)){ // I = 1 if operand 2 is an immediat value
+  if (read_bit(instruction, bitI)){ // I = 1 if operand 2 is an immediat value
         printf("I = 1\n");
-    o2                  = extractbits(instruction)
-    unsigned int imm    = extractbits(instruction, imm, immlgth);
-    unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
+    o2                  = extract_bits(instruction)
+    unsigned int imm    = extract_bits(instruction, imm, immlgth);
+    unsigned int rotate = extract_bits(instruction, rotstrt, rotlngth);
     rotate <<= 2;
     o2                  = rotatateright(imm, rotate);
     printf("o2 = %d\n", o2);
 
   } else { // I = 0  we shift register
         printf("I = 0\n");
-        int rm         = extractbits(instruction, rmstrt, rmlngth);
+        int rm         = extract_bits(instruction, rmstrt, rmlngth);
         int valrm      = registers[rm]; // value of register
-        int shifttype  = extractbits(instruction, 5, 2);
+        int shifttype  = extract_bits(instruction, 5, 2);
         int shiftvalue = 0;
-        if (readbit(instruction, operand2bit4)){ // if bit 4 is 1
-            int rs = extractbits(instrc, 8, 4);
+        if (read_bit(instruction, operand2bit4)){ // if bit 4 is 1
+            int rs = extract_bits(instrc, 8, 4);
             int vrs = reg[rs];
         }
 
@@ -228,17 +206,14 @@ void dataprocessing(int instruction){
 }
 
 //reading start from right to left. begin with index 0
-bool readbit(int instruction, int index) { 
-	return extractbits(instrc, index, 1) == 1;
+bool read_bit(uint32_t instruction, int index) { 
+	return extract_bits(instrc, index, 1) == 1;
 }
 
-<<<<<<< HEAD
-int rotateright(int x, int y) {
-=======
 // start is the start bit from where we extract the bits
-// length is how many bits we want to extract
-// instructionm is from where we want to extract
-int extractbits(int instruction, int start, int length) {       
+// length is how many bits we want to extract from right to left
+// instruction is the uint32_t from which we want to extract
+int extract_bits(uint32_t instruction, int start, int length) {       
   if (start > 31 || start < 0) {                           
 	  printf("%s\n", "take int error");                   
 	  printf("start = %d, length = %d\n", start, length);
@@ -250,32 +225,59 @@ int extractbits(int instruction, int start, int length) {
   }
 }
 
-int rotatateright(int x, int y) {
->>>>>>> d4fc5d305c5e2b4c94a2f427a6c6b7c75f19717d
-   if (y != 0) {
-	   //carryout = readbit(x, y-1);
-	   int firstYbits = x << (32 - y);
-	   int lastbits = x >> y;
-<<<<<<< HEAD
+int rotate_right(int op, int rotation) {
+   if (rotation != 0) {
+	   //carryout = read_bit(x, y-1);
+	   int firstYbits = op << (32 - rotation);
+	   int lastbits = op >> rotation;
 	   return (firstYbits | lastbits);
    } else {
-	   return x;
+	   return op;
    }
 }
 
-// assume operand 2 has been processed and the value converted to 32-bit
-void and_imm(uint32_t rn, uint32_t value, uint32_t rd) {
+//uint32_t process_op_2(uint32_t instruction) {
+//  bool imm = read_bit(instruction, 
+//}
+
+// Assume operand 2 has been processed to give the value
+// Need to do the operand 2 processing
+void and(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = rn & o2;
 }
 
-void and_reg(uint32_t rn, uint32_t value, uint32_t rd) {
-
-}
-=======
-	   retun (firstYbits | lastbits);
-   } else {
-	  return x;
-   }
+void eor(uint32_t rn, uint32_t value, uint32_t rd) {
+  rd = rn ^ value;
 }
 
->>>>>>> d4fc5d305c5e2b4c94a2f427a6c6b7c75f19717d
+void sub(uint32_t rn, uint32_t value, uint32_t rd) {
+  rd = rn - value;
+}
+
+void rsb(uint32_t rn, uint32_t value, uint32_t rd) {
+  rd = value - rn;
+}
+
+void add(uint32_t rn, uint32_t value, uint32_t rd) {
+  rd = rn + value;
+}
+
+uint32_t tst(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn & value);
+}
+
+uint32_t teq(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn ^ value);  
+}
+
+uint32_t cmp(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn - value);
+}
+
+uint32_t orr(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn | value);
+}
+
+void mov(uint32_t rn, uint32_t value, uint32_t rd) {
+  rd = value;
+}
