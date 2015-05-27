@@ -79,9 +79,6 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS; 
 }
 
-char memory[64 * 1024]; // 1 char = 1 byte 
-int registers[17]; 
-
 void dataprocessing(int);
 
 void initializeMemories() {
