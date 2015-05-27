@@ -37,11 +37,11 @@ void execute(void *decoded);
 
 void dataprocessing(int);
 
-bool read_bit(int instruction, int index);
+bool read_bit(uint32_t instruction, int index); 
 
-int extract_bits(int instruction, int start, int length);
+int extract_bits(uint32_t instruction, int start, int length);
 
-int rotatateright(int x, int y);
+int rotate_right(int op, int rotation); 
 
 int main(int argc, char **argv) {
   assert (argc == 2);
@@ -201,10 +201,6 @@ int rotate_right(int op, int rotation) {
 	   return op;
    }
 }
-
-//uint32_t process_op_2(uint32_t instruction) {
-//  bool imm = read_bit(instruction, 
-//}
 
 // Assume operand 2 has been processed to give the value
 // Need to do the operand 2 processing
