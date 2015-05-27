@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdint.h>
+
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -43,6 +45,8 @@ int extract_bits(uint32_t instruction, int start, int length);
 
 int rotate_right(int op, int rotation); 
 
+void output_machine_state(void);
+
 int main(int argc, char **argv) {
   assert (argc == 2);
   const char *fileName = argv[1]; 
@@ -52,19 +56,24 @@ int main(int argc, char **argv) {
   loadMemory(fileName);
     //Parse binary file and upload contents into memory
   
-  uint32_t fetched;
+  //uint32_t fetched;
   //void *decoded = NULL;
   
-  while (1) {
+  //while (1) {
     // execute(decoded);
     // decoded = decode(fetched);
-    fetched = fetch(pc);
-    printf("%u", fetched);
-     pc += 4;    
-  }
+    //fetched = fetch(pc);
+    //printf("%u", fetched);
+    // pc += 4;    
+  //}
 
   //printf("%u", fetched);
-  
+  r1 = 2;
+  r2 = 4;
+  r3 = 8;
+  pc = 20;
+  output_machine_state();
+
   free(memory); 
     
   return EXIT_SUCCESS; 
@@ -172,7 +181,6 @@ void data_processing(uint32_t instruction){
 }
 
 //reading start from right to left. begin with index 0
-bool read_bit(uint32_t instruction, int index) { 
 	return extract_bits(instrc, index, 1) == 1;
 }
 
@@ -242,4 +250,26 @@ uint32_t orr(uint32_t rn, uint32_t value, uint32_t rd) {
 
 void mov(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = value;
+}
+
+void output_machine_state(void) {
+  printf("Registers:\n");
+  for(int i=0; i<10; i++) {
+    printf("$%d  :          %d (%x)\n", i, registers[i], registers[i]);
+  }
+  for(int i=10; i<13; i++) {
+    printf("$%d :          %d (%x)\n", i , registers[i], registers[i]);
+  }
+
+  printf("PC  :          %d (%x)\n", pc, pc);
+  printf("CPSR:          %d (%x)\n", cpsr, cpsr);
+
+  printf("Non-zero memory:\n");
+
+  for (int i=0, i < MEM_SIZE; i++) {
+    if (memory[i] !=0) {
+      printf("%x: %x\n", i, memory[i]);
+    }
+  }
+
 }
