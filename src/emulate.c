@@ -127,33 +127,104 @@ void dataprocessing(int instruction){
   int rmlngth      = 4;
   int operand2bit4 = 4;
   bool flagS       = false;
+  uint32_t instlgth= 32;
   if (readbit(instruction, bitS)) {
     flagS = true;
-    printf("Set flag S");
+    printf("Set flag S\n");
   }
-  if (readbit(instruction, bitI)){ // I = 1 if operand 2 is an immediat value
+  if (readbit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
         printf("I = 1\n");
     o2                  = extractbits(instruction)
     unsigned int imm    = extractbits(instruction, imm, immlgth);
     unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
-    rotate <<= 2;
+    rotate              <<= 2;
     o2                  = rotatateright(imm, rotate);
-    printf("o2 = %d\n", o2);
-
+    // o2 when I = 1
   } else { // I = 0  we shift register
         printf("I = 0\n");
         int rm         = extractbits(instruction, rmstrt, rmlngth);
         int valrm      = registers[rm]; // value of register
-        int shifttype  = extractbits(instruction, 5, 2);
+        int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
         int shiftvalue = 0;
-        if (readbit(instruction, operand2bit4)){ // if bit 4 is 1
+        if (readbit(instruction, operand2bit4)) { // if bit 4 is 1
             int rs = extractbits(instrc, 8, 4);
-            int vrs = reg[rs];
+            int valrs = reg[rs]; // value of the register
+            int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
+            shiftvalue = bottombyte;
+        } else { // if bit 4 is 0
+            int integer = extractbits(instruction, 7, 5);
         }
-
+        switch (shifttype) {
+          case (0) :
+            o2 = lsl(valrm, shiftvalue);
+            break;
+          case (1) :
+            o2 = lsr(valrm, shiftvalue);
+            break;
+          case (2) :
+            o2 = asr(valrm, shiftvalue);
+            break;
+          case (3) :
+            o2 = ror(valrm, shiftvalue);
+            break;
+          default :
+            printf("Error in choosing shift type\n");
+        }
+        // o2 when I = 0
+        printf("o2 = %d\n", o2); 
     }
 
+ 
+
+
+   
+
 }
+
+int lsl(int reg, int shiftvalue) {
+  if (shiftvalue != 0) {
+    carryout = readbit(reg, instlgth - shiftvalue);
+    return reg << shiftvalue;
+  } else {
+    return reg;
+  }
+}
+
+int lsr(int reg, int shiftvalue) {
+  if (shiftvalue != 0) {
+    carryout = readbit(reg, shiftvalue - 1);
+    return reg >> shiftvalue;
+  } else {
+    return reg;
+  }
+}
+
+int asr(int reg, int shiftvalue) {
+  if (shiftvalue != 0) {
+    bool lastbit = readbit(reg, instlgth - 1);
+    carryout = readbit(reg, shiftvalue - 1);
+    int reglsr = lsr(reg, shiftvalue);
+    if (lastbit) {
+      int mask = (1 << shiftvalue) - 1;
+      return reglsr | mask;
+    } else {
+      return reglsr;
+    }
+  } else {
+    return reg;
+  }
+}
+
+int lsl(int reg, int shiftvalue) {
+  return rotatateright(reg, shiftvalue);
+}
+
+
+
+
+
+
+
 
 //reading start from right to left. begin with index 0
 bool readbit(int instruction, int index) { 
