@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -31,23 +32,21 @@ uint32_t registers[NUM_REGS]; // represents the registers
 _Bool carryout;
 uint32_t instlgth = 32;
 
-void initializeMemories();
+void initilize_memories();
 
-int loadMemory(const char *filename);
+int load_memory(const char *filename);
 
 uint32_t fetch(int address); 
 
-void decodeAndExecute(uint32_t fetched);
+void decode_execute(uint32_t fetched);
 
-void execute(void *decoded);
+void data_processing(int);
 
-void dataprocessing(int);
+_Bool read_bit(int instruction, int index);
 
-_Bool readbit(int instruction, int index);
+int extract_bits(int instruction, int start, int length);
 
-int extractbits(int instruction, int start, int length);
-
-int rotatateright(int x, int y);
+int rotate_right(int x, int y);
 
 int lsl(int reg, int shiftvalue);
 
@@ -57,16 +56,17 @@ int asr(int reg, int shiftvalue);
 
 int ror(int reg, int shiftvalue);
 
+void output_machine_state(void);
 
-
-
+// Main function starts here MAIN
 int main(int argc, char **argv) {
   assert (argc == 2);
-  const char *fileName = argv[1]; 
+  char name[70] = "../../arm11_1415_testsuite/test_cases/";
+  const char *fileName = strcat(name, argv[1]);
   
-  initializeMemories();
+  initilize_memories();
     //Set all memory locations and registers to 0 
-  loadMemory(fileName);
+  load_memory(fileName);
     //Parse binary file and upload contents into memory
   
   uint32_t fetched;
@@ -80,14 +80,17 @@ int main(int argc, char **argv) {
   //}
 
   fetched = fetch(0);
-  printf("%u", fetched);
-  
+  //printf("%u", fetched);
+  r2 = 4128768;
+  pc = 12; 
+  output_machine_state();
+
   free(memory); 
     
   return EXIT_SUCCESS; 
 }
 
-void initializeMemories() {
+void initilize_memories() {
   memory = (uint8_t *) malloc(MEM_SIZE * sizeof(uint8_t));
   
   for (int i = 0; i < MEM_SIZE; i++) {
@@ -101,7 +104,7 @@ void initializeMemories() {
   //Set all registers to 0
 }
 
-int loadMemory(const char *fileName) {
+int load_memory(const char *fileName) {
 
   FILE *program;
   program = fopen(fileName, "rb");
@@ -122,14 +125,14 @@ uint32_t fetch(int address) {
   return ret += memory[address];
 }
 
-void decodeAndExecute(uint32_t fetched) {
+void decode_execute(uint32_t fetched) {
   if (!fetched) {
-    return NULL; 
+    return; 
   }
-  return NULL; 
+  return; 
 }
 
-void dataprocessing(int instruction){
+void data_processing(int instruction){
   int o2;
   int bitS          = 20;
   int bitI          = 25;
@@ -141,30 +144,30 @@ void dataprocessing(int instruction){
   int rmlngth       = 4;
   int operand2bit4  = 4;
   _Bool flagS       = false;
-  if (readbit(instruction, bitS)) {
+  if (read_bit(instruction, bitS)) {
     flagS = true;
     printf("Set flag S\n");
   }
-  if (readbit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
+  if (read_bit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
     printf("I = 1\n");
-    unsigned int imm    = extractbits(instruction, immstrt, immlgth);
-    unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
+    unsigned int imm    = extract_bits(instruction, immstrt, immlgth);
+    unsigned int rotate = extract_bits(instruction, rotstrt, rotlngth);
     rotate              <<= 2;
-    o2                  = rotatateright(imm, rotate);
+    o2                  = rotate_right(imm, rotate);
     // o2 when I = 1
   } else { // I = 0  we shift register
         printf("I = 0\n");
-        int rm         = extractbits(instruction, rmstrt, rmlngth);
+        int rm         = extract_bits(instruction, rmstrt, rmlngth);
         int valrm      = registers[rm]; // value of register
-        int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
+        int shifttype  = extract_bits(instruction, 5, 2);//4 possible shift codes
         int shiftvalue = 0;
-        if (readbit(instruction, operand2bit4)) { // if bit 4 is 1
-            int rs = extractbits(instruction, 8, 4);
+        if (read_bit(instruction, operand2bit4)) { // if bit 4 is 1
+            int rs = extract_bits(instruction, 8, 4);
             int valrs = registers[rs]; // value of the register
-            int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
+            int bottombyte = extract_bits(valrs, 24, 8); // last 8 bits of valrs
             shiftvalue = bottombyte;
         } else { // if bit 4 is 0
-            shiftvalue = extractbits(instruction, 7, 5);
+            shiftvalue = extract_bits(instruction, 7, 5);
         }
         switch (shifttype) {
           case (0) :
@@ -181,6 +184,7 @@ void dataprocessing(int instruction){
             break;
           default :
             printf("Error in choosing shift type\n");
+            return;
         }
         // o2 when I = 0
         printf("o2 = %d\n", o2); 
@@ -195,7 +199,7 @@ void dataprocessing(int instruction){
 
 int lsl(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
-    carryout = readbit(reg, instlgth - shiftvalue);
+    carryout = read_bit(reg, instlgth - shiftvalue);
     return reg << shiftvalue;
   } else {
     return reg;
@@ -204,7 +208,7 @@ int lsl(int reg, int shiftvalue) {
 
 int lsr(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
-    carryout = readbit(reg, shiftvalue - 1);
+    carryout = read_bit(reg, shiftvalue - 1);
     return reg >> shiftvalue;
   } else {
     return reg;
@@ -213,8 +217,8 @@ int lsr(int reg, int shiftvalue) {
 
 int asr(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
-    _Bool lastbit = readbit(reg, instlgth - 1);
-    carryout = readbit(reg, shiftvalue - 1);
+    _Bool lastbit = read_bit(reg, instlgth - 1);
+    carryout = read_bit(reg, shiftvalue - 1);
     int reglsr = lsr(reg, shiftvalue);
     if (lastbit) {
       int mask = (1 << shiftvalue) - 1;
@@ -228,7 +232,7 @@ int asr(int reg, int shiftvalue) {
 }
 
 int ror(int reg, int shiftvalue) {
-  return rotatateright(reg, shiftvalue);
+  return rotate_right(reg, shiftvalue);
 }
 
 
@@ -239,14 +243,14 @@ int ror(int reg, int shiftvalue) {
 
 
 //reading start from right to left. begin with index 0
-_Bool readbit(int instruction, int index) { 
-  return extractbits(instruction, index, 1) == 1;
+_Bool read_bit(int instruction, int index) { 
+  return extract_bits(instruction, index, 1) == 1;
 }
 
 // start is the start bit from where we extract the bits
 // length is how many bits we want to extract
 // instructionm is from where we want to extract
-int extractbits(int instruction, int start, int length) {       
+int extract_bits(int instruction, int start, int length) {       
   if (start > 31 || start < 0) {                           
     printf("%s\n", "take int error");                   
     printf("start = %d, length = %d\n", start, length);
@@ -258,13 +262,44 @@ int extractbits(int instruction, int start, int length) {
   }
 }
 
-int rotatateright(int x, int y) {
+int rotate_right(int x, int y) {
    if (y != 0) {
-     //carryout = readbit(x, y-1);
+     //carryout = read_bit(x, y-1);
      int firstYbits = x << (32 - y);
      int lastbits = x >> y;
      return (firstYbits | lastbits);
    } else {
     return x;
    }
+}
+
+void output_machine_state(void) {
+  printf("Registers:\n");
+  for(int i=0; i<10; i++) {
+    printf("$%-3d: %10d (%0#10x)\n", i, registers[i], registers[i]);
+  }
+  for(int i=10; i<13; i++) {
+    printf("$%-3d: %10d (%0#10x)\n", i , registers[i], registers[i]);
+  }
+
+  printf("PC  : %10d (%0#10x)\n", pc, pc);
+  printf("CPSR: %10d (%0#10x)\n", cpsr, cpsr);
+
+  printf("Non-zero memory:\n");
+
+  for(uint32_t i=0; i< MEM_SIZE; i+=4) {
+    uint32_t fetched = 0;
+    int j;
+    for(j=0; j<3; j++) {
+      fetched += memory[i+j];
+      fetched = fetched << 8;
+    }
+    fetched += memory[i+j];
+    uint32_t index = 0;
+    index = index << 24;
+    index += i; 
+    if (fetched != 0) { 
+      printf("%0#10x: %#10x\n", index, fetched);
+    }
+  }
 }
