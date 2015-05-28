@@ -57,7 +57,9 @@ int asr(int reg, int shiftvalue);
 
 int ror(int reg, int shiftvalue);
 
+int changebit(int instruction, int index, _Bool x);
 
+void multiply(uint32_t instruction);
 
 
 int main(int argc, char **argv) {
@@ -69,7 +71,7 @@ int main(int argc, char **argv) {
   loadMemory(fileName);
     //Parse binary file and upload contents into memory
   
-  uint32_t fetched;
+  //uint32_t fetched;
   //void *decoded = NULL;
   
   //while () {
@@ -79,9 +81,6 @@ int main(int argc, char **argv) {
     // pc += 4;    
   //}
 
-  fetched = fetch(0);
-  printf("%u", fetched);
-  
   free(memory); 
     
   return EXIT_SUCCESS; 
@@ -123,10 +122,25 @@ uint32_t fetch(int address) {
 }
 
 void decodeAndExecute(uint32_t fetched) {
-  if (!fetched) {
-    return NULL; 
+  if (readbit(fetched, 27) == 1) {
+    printf("branch");
+    //branch(fetched);
   }
-  return NULL; 
+  else if (readbit(fetched, 26) == 1) {
+    printf("singledatatransfer");
+    //      singledatatransfer(fetched);
+  }
+  else if (readbit(fetched, 25) == 0 && readbit(fetched, 4) == 1 
+    && readbit(fetched, 7) == 1) {
+      //This works because if bit 25 is 0 in data processing 
+      //then either bit 4 or bit 7 will be 0 as well 
+    printf("multiply");
+    //  multiply(fetched);
+  }
+  else {
+    printf("dataprocessing");
+    //dataprocessing(fetched);
+  } 
 }
 
 void dataprocessing(int instruction){
@@ -193,6 +207,27 @@ void dataprocessing(int instruction){
 
 }
 
+void multiply(uint32_t instruction) {
+  const _Bool bitA = readbit(instruction, 21);
+  const _Bool bitS = readbit(instruction, 20);
+  const int Rd     = extractbits(instruction, 16, 4);
+  const int Rn     = extractbits(instruction, 12, 4);  
+  const int Rs     = extractbits(instruction, 8, 4);
+  const int Rm     = extractbits(instruction, 0, 4);
+  if (bitA == 1) {
+    registers[Rd] = registers[Rm] * registers[Rs] + registers[Rn];
+  }
+  else {
+    registers[Rd] = registers[Rm] * registers[Rs];
+  }
+  if (bitS == 1) {
+    cpsr = changebit(cpsr, 31, readbit(registers[Rd], 31));
+    if (registers[Rd] == 0) {
+      cpsr = changebit(cpsr, 30, 1);
+    }   
+  }
+}
+
 int lsl(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
     carryout = readbit(reg, instlgth - shiftvalue);
@@ -231,16 +266,14 @@ int ror(int reg, int shiftvalue) {
   return rotatateright(reg, shiftvalue);
 }
 
-
-
-
-
-
-
-
 //reading start from right to left. begin with index 0
 _Bool readbit(int instruction, int index) { 
   return extractbits(instruction, index, 1) == 1;
+}
+
+//change the value of bit at index to x
+int changebit(int num, int index, _Bool x) {
+    return num ^= (-x ^ num) & (1 << index);
 }
 
 // start is the start bit from where we extract the bits
