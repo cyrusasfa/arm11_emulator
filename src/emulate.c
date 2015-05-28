@@ -25,6 +25,22 @@
 uint8_t *memory; //Array to represent the memory
 uint32_t registers[NUM_REGS]; // represents the registers
 
+const uint32_t (*op_ptrs[14])(uint32_t rn, uint32_t value, uint32_t rd);
+
+op_ptrs[0] = and;
+op_ptrs[1] = eor;
+op_ptrs[2] = sub;
+op_ptrs[3] = rsb;
+op_ptrs[4] = add;
+op_ptrs[8] = tst;
+op_ptrs[9] = teq;
+op_ptrs[10] = cmp;
+op_ptrs[12] = orr;
+op_ptrs[13] = mov;
+// to call a function we do:
+// (*op_ptrs[opcode])(rn, value rd)
+
+
 void initializeMemories();
 
 int loadMemory(const char *filename);
@@ -150,7 +166,7 @@ void data_processing(uint32_t instruction){
     unsigned int imm    = extract_bits(instruction, imm, immlgth);
     unsigned int rotate = extract_bits(instruction, rotstrt, rotlngth);
     rotate <<= 2;
-    o2                  = rotatateright(imm, rotate);
+    o2                  = rotate_right(imm, rotate);
     printf("o2 = %d\n", o2);
 
   } else { // I = 0  we shift register
@@ -166,6 +182,69 @@ void data_processing(uint32_t instruction){
 
     }
 
+}
+
+void single_data_transfer(uint32_t instruction) {
+  const int bit_I = 25;
+  const int bit_P = 24;
+  const int bit_U = 23;
+  const int bit_L = 20;
+  const int rn_strt = 16;
+  const int rd_strt = 12;
+  const int offset_strt = 0;
+
+  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+    // STMTS
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+  } else { // I = 0 offset is immediate
+    if (read_bit(instruction, bit_P)) {
+      // offset added/subtracted before transfer
+      if (read_bit(instruction, bit_U)) {
+        // add to base reg
+        if (read_bit(instruction, bit_L)) {
+          // load from memory
+        } else {
+          // store in memory
+        }
+      } else {
+        // subtract from base reg
+        if (read_bit(instruction, bit_L)) {
+          // load from memory
+        } else {
+          // store in memory
+        }
+      }
+
+    } else {
+      // offset added/subtracted after transfer
+      if (read_bit(instruction, bit_U)) {
+        // add to base reg
+      } else {
+        // subtract from base reg
+      }
+    }
+  }
 }
 
 //reading start from right to left. begin with index 0
@@ -201,24 +280,29 @@ int rotate_right(int op, int rotation) {
 
 // Assume operand 2 has been processed to give the value
 // Need to do the operand 2 processing
-void and(uint32_t rn, uint32_t value, uint32_t rd) {
+uint32_t and(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = rn & o2;
+  return rd;
 }
 
-void eor(uint32_t rn, uint32_t value, uint32_t rd) {
+uint32_t eor(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = rn ^ value;
+  return rd;
 }
 
-void sub(uint32_t rn, uint32_t value, uint32_t rd) {
+uint32_t sub(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = rn - value;
+  return rd;
 }
 
-void rsb(uint32_t rn, uint32_t value, uint32_t rd) {
+uint32_t rsb(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = value - rn;
+  return rd;
 }
 
-void add(uint32_t rn, uint32_t value, uint32_t rd) {
+uint32_t add(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = rn + value;
+  return rd;
 }
 
 uint32_t tst(uint32_t rn, uint32_t value, uint32_t rd) {
@@ -239,4 +323,5 @@ uint32_t orr(uint32_t rn, uint32_t value, uint32_t rd) {
 
 void mov(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = value;
+  return rd;
 }
