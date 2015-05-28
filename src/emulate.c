@@ -47,7 +47,18 @@ _Bool readbit(int instruction, int index);
 
 int extractbits(int instruction, int start, int length);
 
-int rotatateright(int x, int y);
+int rotateright(int x, int y);
+
+int lsl(int reg, int shiftvalue);
+
+int lsr(int reg, int shiftvalue);
+
+int asr(int reg, int shiftvalue);
+
+int ror(int reg, int shiftvalue);
+
+
+
 
 int lsl(int reg, int shiftvalue);
 
@@ -122,12 +133,6 @@ uint32_t fetch(int address) {
   return ret += memory[address];
 }
 
-void decodeAndExecute(uint32_t fetched) {
-  if (!fetched) {
-    return NULL; 
-  }
-  return NULL; 
-}
 
 void dataprocessing(int instruction){
   int o2;
@@ -141,8 +146,10 @@ void dataprocessing(int instruction){
   int rmlngth       = 4;
   int operand2bit4  = 4;
   _Bool flagS       = false;
+  carryout          = false;
   if (readbit(instruction, bitS)) {
     flagS = true;
+    // should update CPSR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     printf("Set flag S\n");
   }
   if (readbit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
@@ -150,7 +157,8 @@ void dataprocessing(int instruction){
     unsigned int imm    = extractbits(instruction, immstrt, immlgth);
     unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
     rotate              <<= 2;
-    o2                  = rotatateright(imm, rotate);
+    o2                  = rotateright(imm, rotate);
+
     // o2 when I = 1
   } else { // I = 0  we shift register
         printf("I = 0\n");
@@ -167,16 +175,17 @@ void dataprocessing(int instruction){
             shiftvalue = extractbits(instruction, 7, 5);
         }
         switch (shifttype) {
-          case (0) :
+          case (0) :  // 00
             o2 = lsl(valrm, shiftvalue);
             break;
-          case (1) :
+          case (1) :  // 01
             o2 = lsr(valrm, shiftvalue);
             break;
-          case (2) :
+          case (2) :  // 10
             o2 = asr(valrm, shiftvalue);
             break;
-          case (3) :
+          case (3) :  // 11
+
             o2 = ror(valrm, shiftvalue);
             break;
           default :
@@ -190,6 +199,7 @@ void dataprocessing(int instruction){
 
 
    
+
 
 }
 
@@ -211,6 +221,7 @@ int lsr(int reg, int shiftvalue) {
   }
 }
 
+
 int asr(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
     _Bool lastbit = readbit(reg, instlgth - 1);
@@ -228,7 +239,8 @@ int asr(int reg, int shiftvalue) {
 }
 
 int ror(int reg, int shiftvalue) {
-  return rotatateright(reg, shiftvalue);
+  return rotateright(reg, shiftvalue);
+
 }
 
 
@@ -258,13 +270,83 @@ int extractbits(int instruction, int start, int length) {
   }
 }
 
-int rotatateright(int x, int y) {
+int rotateright(int x, int y) {
    if (y != 0) {
-     //carryout = readbit(x, y-1);
+     carryout       = readbit(x, y - 1);
      int firstYbits = x << (32 - y);
-     int lastbits = x >> y;
+     int lastbits   = x >> y;
      return (firstYbits | lastbits);
    } else {
     return x;
-   }
+   }   
 }
+
+_Bool checkCond (int instruction) {
+
+}
+
+
+void single_data_transfer(uint32_t instruction) {
+  const int bit_I = 25;
+  const int bit_P = 24;
+  const int bit_U = 23;
+  const int bit_L = 20;
+  const int rn_strt = 16;
+  const int rd_strt = 12;
+  const int offset_strt = 0;
+
+  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+    // STMTS
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+  } else { // I = 0 offset is immediate
+    if (read_bit(instruction, bit_P)) {
+      // offset added/subtracted before transfer
+      if (read_bit(instruction, bit_U)) {
+        // add to base reg
+        if (read_bit(instruction, bit_L)) {
+          // load from memory
+        } else {
+          // store in memory
+        }
+      } else {
+        // subtract from base reg
+        if (read_bit(instruction, bit_L)) {
+          // load from memory
+        } else {
+          // store in memory
+        }
+      }
+
+    } else {
+      // offset added/subtracted after transfer
+      if (read_bit(instruction, bit_U)) {
+        // add to base reg
+      } else {
+        // subtract from base reg
+      }
+    }
+  }
+}
+
+
