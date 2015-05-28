@@ -29,6 +29,7 @@
 uint8_t *memory; //Array to represent the memory
 uint32_t registers[NUM_REGS]; // represents the registers
 _Bool carryout;
+_Bool flagS;
 uint32_t instlgth = 32;
 
 const uint32_t (*op_ptrs[14])(uint32_t rn, uint32_t value, uint32_t rd);
@@ -199,12 +200,6 @@ void dataprocessing(int instruction){
         // o2 when I = 0
         printf("o2 = %d\n", o2); 
     }
-
- 
-
-
-   
-
 }
 
 int lsl(int reg, int shiftvalue) {
@@ -254,57 +249,97 @@ void single_data_transfer(uint32_t instruction) {
   const int rd_strt = 12;
   const int offset_strt = 0;
 
-  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
-    // STMTS
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-  } else { // I = 0 offset is immediate
-    if (read_bit(instruction, bit_P)) {
-      // offset added/subtracted before transfer
-      if (read_bit(instruction, bit_U)) {
-        // add to base reg
-        if (read_bit(instruction, bit_L)) {
-          // load from memory
-        } else {
-          // store in memory
-        }
-      } else {
-        // subtract from base reg
-        if (read_bit(instruction, bit_L)) {
-          // load from memory
-        } else {
-          // store in memory
-        }
-      }
+  int rn = extractbits(instruction, rn_strt, 4);
+  int rd = extractbits(instruction, rd_strt, 4);
 
-    } else {
-      // offset added/subtracted after transfer
-      if (read_bit(instruction, bit_U)) {
-        // add to base reg
+  int offset;
+
+  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+    printf("I = 1\n");
+    int rm         = extractbits(instruction, offset_strt, 4);
+    int valrm      = registers[rm]; // value of register
+    int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
+    int shiftvalue = 0;
+    if (readbit(instruction, 4)) { // if bit 4 is 1
+      int rs = extractbits(instruction, 8, 4);
+      int valrs = registers[rs]; // value of the register
+      int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
+      shiftvalue = bottombyte;
+    } else { // if bit 4 is 0
+      shiftvalue = extractbits(instruction, 7, 5);
+    }
+    switch (shifttype) {
+      case (0) :
+        offset = lsl(valrm, shiftvalue);
+        break;
+      case (1) :
+        offset = lsr(valrm, shiftvalue);
+        break;
+      case (2) :
+        offset = asr(valrm, shiftvalue);
+        break;
+      case (3) :
+        offset = ror(valrm, shiftvalue);
+        break;
+      default :
+        printf("Error in choosing shift type\n");
+    }
+    // o2 when I = 0
+    printf("offset = %d\n", offset); 
+  } else { // I = 0 offset is immediate
+    printf("I = 1\n");
+    unsigned int imm    = extractbits(instruction, offset_strt, 8);
+    unsigned int rotate = extractbits(instruction, 8, 4);
+    rotate              <<= 2;
+    offset              = rotatateright(imm, rotate);
+  }
+
+  if (read_bit(instruction, bit_P)) {
+    // offset added/subtracted before transfer
+    if (read_bit(instruction, bit_U)) {
+      // add to base reg
+      registers[rn] += offset;
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[registers[rn]];
       } else {
-        // subtract from base reg
+        // store in memory
+        memory[registers[rn]] = registers[rd];
+      }
+    } else {
+      // subtract from base reg
+      registers[rn] -= offset;
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[registers[rn]];
+      } else {
+        memory[registers[rn]] = registers[rd];
       }
     }
+
+  } else {
+    // offset added/subtracted after transfer
+    if (read_bit(instruction, bit_U)) {
+      // add to base reg
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[registers[rn]];
+      } else {
+        // store in memory
+        memory[registers[rn]] = registers[rd];
+      }
+      registers[rn] += offset;
+    } else {
+      // subtract from base reg
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[registers[rn]];
+      } else {
+        memory[registers[rn]] = registers[rd];
+      }
+      registers[rn] -= offset;
+    }    
+
   }
 }
 
@@ -343,6 +378,9 @@ int rotatateright(int x, int y) {
 // Need to do the operand 2 processing
 uint32_t and(uint32_t rn, uint32_t value, uint32_t rd) {
   rd = rn & o2;
+  // if (flagS && carryout) {
+  //   setC();
+  // }
   return rd;
 }
 
