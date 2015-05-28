@@ -29,7 +29,7 @@
 
 uint8_t *memory; //Array to represent the memory
 uint32_t registers[NUM_REGS]; // represents the registers
-_Bool carryout;
+bool carryout;
 uint32_t instlgth = 32;
 
 void initilize_memories();
@@ -40,9 +40,25 @@ uint32_t fetch(int address);
 
 void decode_execute(uint32_t fetched);
 
-void data_processing(int);
+bool equal(void);
 
-_Bool read_bit(int instruction, int index);
+bool not_equal(void);
+
+bool greater_equal(void);
+
+bool less(void);
+
+bool greater(void);
+
+bool less_equal(void);
+
+bool always(void);
+
+bool condition(int cond_code);
+
+void  data_processing(int);
+
+bool read_bit(int instruction, int index);
 
 int extract_bits(int instruction, int start, int length);
 
@@ -55,6 +71,8 @@ int lsr(int reg, int shiftvalue);
 int asr(int reg, int shiftvalue);
 
 int ror(int reg, int shiftvalue);
+
+void branch(uint32_t fetched);
 
 void output_machine_state(void);
 
@@ -69,7 +87,7 @@ int main(int argc, char **argv) {
   load_memory(fileName);
     //Parse binary file and upload contents into memory
   
-  uint32_t fetched;
+//  uint32_t fetched;
   //void *decoded = NULL;
   
   //while () {
@@ -79,10 +97,6 @@ int main(int argc, char **argv) {
     // pc += 4;    
   //}
 
-  fetched = fetch(0);
-  //printf("%u", fetched);
-  r2 = 4128768;
-  pc = 12; 
   output_machine_state();
 
   free(memory); 
@@ -129,7 +143,60 @@ void decode_execute(uint32_t fetched) {
   if (!fetched) {
     return; 
   }
-  return; 
+  
+  if (read_bit(fetched,27) == 1) {
+    branch(fetched);
+  } else if (read_bit(fetched,26) == 1) {
+    //single_data_transfer(fetched);
+  } else if (read_bit(fetched,25) == 0 && read_bit(fetched, 4) == 1 &&
+  read_bit(fetched, 7) ==1) {
+    //multiply(fetched);
+  } else {
+    data_processing(fetched);
+  }
+  return;
+}
+
+bool equal(void) {
+  return read_bit(cpsr, 30) == 1;
+}
+
+bool not_equal(void) {
+  return !equal();
+}
+
+bool greater_equal(void) {
+  return (read_bit(cpsr,31) == read_bit(cpsr, 28));
+}
+
+bool less(void) {
+  return (read_bit(cpsr,31) != read_bit(cpsr, 28));
+}
+
+bool greater(void) {
+  return (not_equal() && greater_equal());
+}
+
+bool less_equal(void) {
+  return (equal() && less());
+}
+
+bool always(void) {
+  return true;
+}
+
+bool condition(int cond_code) {
+  bool (*check_cpsr[15])(void);
+ 
+  check_cpsr[0] = &equal;
+  check_cpsr[1] = &not_equal;
+  check_cpsr[10] = &greater_equal;
+  check_cpsr[11] = &less;
+  check_cpsr[12] = &greater;
+  check_cpsr[13] = &less_equal;
+  check_cpsr[14] = &always;
+  
+  return (*check_cpsr[cond_code])();
 }
 
 void data_processing(int instruction){
@@ -143,7 +210,7 @@ void data_processing(int instruction){
   int rmstrt        = 0;
   int rmlngth       = 4;
   int operand2bit4  = 4;
-  _Bool flagS       = false;
+  bool flagS       = false;
   if (read_bit(instruction, bitS)) {
     flagS = true;
     printf("Set flag S\n");
@@ -217,7 +284,7 @@ int lsr(int reg, int shiftvalue) {
 
 int asr(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
-    _Bool lastbit = read_bit(reg, instlgth - 1);
+    bool lastbit = read_bit(reg, instlgth - 1);
     carryout = read_bit(reg, shiftvalue - 1);
     int reglsr = lsr(reg, shiftvalue);
     if (lastbit) {
@@ -243,13 +310,13 @@ int ror(int reg, int shiftvalue) {
 
 
 //reading start from right to left. begin with index 0
-_Bool read_bit(int instruction, int index) { 
+bool read_bit(int instruction, int index) { 
   return extract_bits(instruction, index, 1) == 1;
 }
 
 // start is the start bit from where we extract the bits
 // length is how many bits we want to extract
-// instructionm is from where we want to extract
+// instruction is from where we want to extract
 int extract_bits(int instruction, int start, int length) {       
   if (start > 31 || start < 0) {                           
     printf("%s\n", "take int error");                   
@@ -271,6 +338,19 @@ int rotate_right(int x, int y) {
    } else {
     return x;
    }
+}
+
+void branch (uint32_t fetched) {
+  const int cond = extract_bits(fetched, 28, 4);
+  if (!condition(cond)) {
+    printf("\nlol you fag\n");
+    return;
+  }
+  
+  int offset = extract_bits(fetched, 0, 24);
+  offset = offset << 2;
+  int32_t move = offset;
+  pc += move;
 }
 
 void output_machine_state(void) {
@@ -299,7 +379,7 @@ void output_machine_state(void) {
     index = index << 24;
     index += i; 
     if (fetched != 0) { 
-      printf("%0#10x: %#10x\n", index, fetched);
+      printf("%0#10x: %0#10x\n", index, fetched);
     }
   }
 }
