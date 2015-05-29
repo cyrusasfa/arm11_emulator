@@ -83,19 +83,13 @@ int main(int argc, char **argv) {
   const char *fileName = strcat(name, argv[1]);
   
   initilize_memories();
-    //Set all memory locations and registers to 0 
+  //Set all memory locations and registers to 0 
   load_memory(fileName);
-    //Parse binary file and upload contents into memory
+  //Parse binary file and upload contents into memory
   
-//  uint32_t fetched;
+  //uint32_t fetched;
   //void *decoded = NULL;
   
-  //while () {
-    // execute(decoded);
-    // decoded = decode(fetched);
-    // fetched = fetch(pc);
-    // pc += 4;    
-  //}
 
   output_machine_state();
 
@@ -210,9 +204,12 @@ void data_processing(int instruction){
   int rmstrt        = 0;
   int rmlngth       = 4;
   int operand2bit4  = 4;
+  
   bool flagS       = false;
+  carryout          = false;
   if (read_bit(instruction, bitS)) {
     flagS = true;
+    // should update CPSR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     printf("Set flag S\n");
   }
   if (read_bit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
@@ -237,16 +234,16 @@ void data_processing(int instruction){
             shiftvalue = extract_bits(instruction, 7, 5);
         }
         switch (shifttype) {
-          case (0) :
+          case (0) :  // 00
             o2 = lsl(valrm, shiftvalue);
             break;
-          case (1) :
+          case (1) :  // 01
             o2 = lsr(valrm, shiftvalue);
             break;
-          case (2) :
+          case (2) :  // 10
             o2 = asr(valrm, shiftvalue);
             break;
-          case (3) :
+          case (3) :  // 11
             o2 = ror(valrm, shiftvalue);
             break;
           default :
@@ -256,11 +253,6 @@ void data_processing(int instruction){
         // o2 when I = 0
         printf("o2 = %d\n", o2); 
     }
-
- 
-
-
-   
 
 }
 
@@ -303,12 +295,6 @@ int ror(int reg, int shiftvalue) {
 }
 
 
-
-
-
-
-
-
 //reading start from right to left. begin with index 0
 bool read_bit(int instruction, int index) { 
   return extract_bits(instruction, index, 1) == 1;
@@ -330,14 +316,14 @@ int extract_bits(int instruction, int start, int length) {
 }
 
 int rotate_right(int x, int y) {
-   if (y != 0) {
-     //carryout = read_bit(x, y-1);
-     int firstYbits = x << (32 - y);
-     int lastbits = x >> y;
-     return (firstYbits | lastbits);
+  if (y != 0) {
+    carryout = read_bit(x, y-1);
+    int firstYbits = x << (32 - y);
+    int lastbits   = x >> y;
+    return (firstYbits | lastbits);
    } else {
     return x;
-   }
+   }   
 }
 
 void branch (uint32_t fetched) {
