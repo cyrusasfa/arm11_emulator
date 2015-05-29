@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
+#include <math.h>
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -28,27 +30,42 @@
 
 uint8_t *memory; //Array to represent the memory
 uint32_t registers[NUM_REGS]; // represents the registers
-_Bool carryout;
-_Bool flagS;
+bool carryout;
 uint32_t instlgth = 32;
 
-void initializeMemories();
+void initilize_memories();
 
-int loadMemory(const char *filename);
+int load_memory(const char *filename);
 
 uint32_t fetch(int address); 
 
-void decodeAndExecute(uint32_t fetched);
+void decode_execute(uint32_t fetched);
 
-void execute(void *decoded);
+bool equal(void);
 
-void dataprocessing(int);
+bool not_equal(void);
 
-_Bool read_bit(int instruction, int index);
+bool greater_equal(void);
 
-int extractbits(int instruction, int start, int length);
+bool less(void);
 
-int rotatateright(int x, int y);
+bool greater(void);
+
+bool less_equal(void);
+
+bool always(void);
+
+bool condition(int cond_code);
+
+void  data_processing(int);
+
+void single_data_transfer(uint32_t instruction);
+
+bool read_bit(int instruction, int index);
+
+int extract_bits(int instruction, int start, int length);
+
+int rotate_right(int x, int y);
 
 int lsl(int reg, int shiftvalue);
 
@@ -58,19 +75,22 @@ int asr(int reg, int shiftvalue);
 
 int ror(int reg, int shiftvalue);
 
+void branch(uint32_t fetched);
 
+void output_machine_state(void);
 
-
+// Main function starts here MAIN
 int main(int argc, char **argv) {
   assert (argc == 2);
-  const char *fileName = argv[1]; 
+  char name[70] = "../../arm11_1415_testsuite/test_cases/";
+  const char *fileName = strcat(name, argv[1]);
   
-  initializeMemories();
-    //Set all memory locations and registers to 0 
-  loadMemory(fileName);
-    //Parse binary file and upload contents into memory
+  initilize_memories();
+  //Set all memory locations and registers to 0 
+  load_memory(fileName);
+  //Parse binary file and upload contents into memory
   
-  uint32_t fetched;
+  //uint32_t fetched;
   //void *decoded = NULL;
   
   //while () {
@@ -80,15 +100,12 @@ int main(int argc, char **argv) {
     // pc += 4;    
   //}
 
-  fetched = fetch(0);
-  printf("%u", fetched);
-  
   free(memory); 
-    
+  output_machine_state();
   return EXIT_SUCCESS; 
 }
 
-void initializeMemories() {
+void initilize_memories() {
   memory = (uint8_t *) malloc(MEM_SIZE * sizeof(uint8_t));
   
   for (int i = 0; i < MEM_SIZE; i++) {
@@ -102,7 +119,7 @@ void initializeMemories() {
   //Set all registers to 0
 }
 
-int loadMemory(const char *fileName) {
+int load_memory(const char *fileName) {
 
   FILE *program;
   program = fopen(fileName, "rb");
@@ -123,41 +140,130 @@ uint32_t fetch(int address) {
   return ret += memory[address];
 }
 
-void decodeAndExecute(uint32_t fetched) {
+void decode_execute(uint32_t fetched) {
   if (!fetched) {
     return; 
   }
-  return; 
+  
+  if (read_bit(fetched,27) == 1) {
+    branch(fetched);
+  } else if (read_bit(fetched,26) == 1) {
+    //single_data_transfer(fetched);
+  } else if (read_bit(fetched,25) == 0 && read_bit(fetched, 4) == 1 &&
+  read_bit(fetched, 7) ==1) {
+    //multiply(fetched);
+  } else {
+    data_processing(fetched);
+  }
+  return;
 }
+
+bool equal(void) {
+  return read_bit(cpsr, 30) == 1;
+}
+
+bool not_equal(void) {
+  return !equal();
+}
+
+bool greater_equal(void) {
+  return (read_bit(cpsr,31) == read_bit(cpsr, 28));
+}
+
+bool less(void) {
+  return (read_bit(cpsr,31) != read_bit(cpsr, 28));
+}
+
+bool greater(void) {
+  return (not_equal() && greater_equal());
+}
+
+bool less_equal(void) {
+  return (equal() && less());
+}
+
+bool always(void) {
+  return true;
+}
+
+bool condition(int cond_code) {
+  bool (*check_cpsr[15])(void);
+ 
+  check_cpsr[0] = &equal;
+  check_cpsr[1] = &not_equal;
+  check_cpsr[10] = &greater_equal;
+  check_cpsr[11] = &less;
+  check_cpsr[12] = &greater;
+  check_cpsr[13] = &less_equal;
+  check_cpsr[14] = &always;
+  
+  return (*check_cpsr[cond_code])();
+}
+
+uint32_t set_bit(uint32_t number, int bit) {
+  int ret = number;
+  if (!read_bit(number, bit)) {
+    ret += pow (2, bit);
+  }
+  return ret;
+}
+
+uint32_t reset_bit(uint32_t number, int bit) {
+  int ret = number;
+  if (read_bit(number, bit)) {
+    ret -= pow (2, bit);
+  }
+  return ret;
+}
+
+uint32_t set_bit_z(uint32_t number, uint32_t res) {
+  uint32_t ret = number;
+  if (res == 0) {
+    ret = set_bit(number, 30);
+  } else {
+    ret = reset_bit(number,30);
+  }
+  
+  return ret;
+}
+
 
 // Assume operand 2 has been processed to give the value
 // Need to do the operand 2 processing
 uint32_t and(uint32_t rn, uint32_t value, uint32_t rd) {
-  rd = rn & value;
-  // if (flagS && carryout) {
-  //   setC();
-  // }
-  return rd;
+  registers[rd] = rn & value;
+  uint32_t ret = cpsr;
 }
 
 uint32_t eor(uint32_t rn, uint32_t value, uint32_t rd) {
-  rd = rn ^ value;
+  registers[rd] = rn ^ value;
   return rd;
 }
 
 uint32_t sub(uint32_t rn, uint32_t value, uint32_t rd) {
-  rd = rn - value;
+  registers[rd] = rn - value;
   return rd;
 }
 
 uint32_t rsb(uint32_t rn, uint32_t value, uint32_t rd) {
-  rd = value - rn;
+  registers[rd] = value - rn;
   return rd;
 }
 
 uint32_t add(uint32_t rn, uint32_t value, uint32_t rd) {
-  rd = rn + value;
-  return rd;
+  registers[rd] = rn + value;
+  uint32_t ret = cpsr;
+  if (value > pow(2 , 31) - rd){
+  carryout = true;
+  ret = set_bit(ret, 29);
+  } else {
+  ret = reset_bit(ret, 29);
+  }
+  
+  if(registers[rd] == 0) {
+  ret = set_bit(
+  }
+  return ret;
 }
 
 uint32_t tst(uint32_t rn, uint32_t value, uint32_t rd) {
@@ -177,11 +283,12 @@ uint32_t orr(uint32_t rn, uint32_t value, uint32_t rd) {
 }
 
 uint32_t mov(uint32_t rn, uint32_t value, uint32_t rd) {
-  rd = value;
+  registers[rd] = value;
   return rd;
 }
 
-void dataprocessing(int instruction){
+void data_processing(int instruction){
+  
   int o2;
   int bitS          = 20;
   int bitI          = 25;
@@ -195,8 +302,7 @@ void dataprocessing(int instruction){
   int rmstrt        = 0;
   int rmlngth       = 4;
   int operand2bit4  = 4;
-  _Bool flagS       = false;
-
+  
   uint32_t (*op_ptrs[14])(uint32_t rn, uint32_t value, uint32_t rd);
   op_ptrs[0] = and;
   op_ptrs[1] = eor;
@@ -211,58 +317,61 @@ void dataprocessing(int instruction){
   // to call a function we do:
   // (*op_ptrs[opcode])(rn, value, rd)
   
-  int opcode = extractbits(instruction, opcode_strt, 4);
-  uint32_t rn = registers[extractbits(instruction, rn_strt, 4)];
-  uint32_t rd = registers[extractbits(instruction, rd_strt, 4)];
-
-  if (read_bit(instruction, bitS)) {
-    flagS = true;
-    printf("Set flag S\n");
-  }
+  int opcode = extract_bits(instruction, opcode_strt, 4);
+  uint32_t rn = registers[extract_bits(instruction, rn_strt, 4)];
+  uint32_t rd = extract_bits(instruction, rd_strt, 4);
+  
+  carryout = false;
+  
   if (read_bit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
     printf("I = 1\n");
-    unsigned int imm    = extractbits(instruction, immstrt, immlgth);
-    unsigned int rotate = extractbits(instruction, rotstrt, rotlngth);
+    unsigned int imm    = extract_bits(instruction, immstrt, immlgth);
+    unsigned int rotate = extract_bits(instruction, rotstrt, rotlngth);
     rotate              <<= 2;
-    o2                  = rotatateright(imm, rotate);
+    o2                  = rotate_right(imm, rotate);
     // o2 when I = 1
   } else { // I = 0  we shift register
-    printf("I = 0\n");
-    int rm         = extractbits(instruction, rmstrt, rmlngth);
-    int valrm      = registers[rm]; // value of register
-    int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
-    int shiftvalue = 0;
-    if (read_bit(instruction, operand2bit4)) { // if bit 4 is 1
-      int rs = extractbits(instruction, 8, 4);
-      int valrs = registers[rs]; // value of the register
-      int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
-      shiftvalue = bottombyte;
-    } else { // if bit 4 is 0
-      shiftvalue = extractbits(instruction, 7, 5);
+        printf("I = 0\n");
+        int rm         = extract_bits(instruction, rmstrt, rmlngth);
+        int valrm      = registers[rm]; // value of register
+        int shifttype  = extract_bits(instruction, 5, 2);//4 possible shift codes
+        int shiftvalue = 0;
+        if (read_bit(instruction, operand2bit4)) { // if bit 4 is 1
+            int rs = extract_bits(instruction, 8, 4);
+            int valrs = registers[rs]; // value of the register
+            int bottombyte = extract_bits(valrs, 24, 8); // last 8 bits of valrs
+            shiftvalue = bottombyte;
+        } else { // if bit 4 is 0
+            shiftvalue = extract_bits(instruction, 7, 5);
+        }
+        switch (shifttype) {
+          case (0) :  // 00
+            o2 = lsl(valrm, shiftvalue);
+            break;
+          case (1) :  // 01
+            o2 = lsr(valrm, shiftvalue);
+            break;
+          case (2) :  // 10
+            o2 = asr(valrm, shiftvalue);
+            break;
+          case (3) :  // 11
+            o2 = ror(valrm, shiftvalue);
+            break;
+          default :
+            printf("Error in choosing shift type\n");
+            return;
+        }
+        // o2 when I = 0
+        printf("o2 = %d\n", o2); 
     }
-    switch (shifttype) {
-      case (0) :
-        o2 = lsl(valrm, shiftvalue);
-        break;
-      case (1) :
-        o2 = lsr(valrm, shiftvalue);
-        break;
-      case (2) :
-        o2 = asr(valrm, shiftvalue);
-        break;
-      case (3) :
-        o2 = ror(valrm, shiftvalue);
-        break;
-      default :
-        printf("Error in choosing shift type\n");
-        return;
-      }
-      // o2 when I = 0
-      printf("o2 = %d\n", o2); 
+    
+    uint32_t value = o2;
+    uint32_t newCPSR = (*op_ptrs[opcode])(rn, o2, rd);
+    
+    if (read_bit(instruction, bitS)) {
+      mcpsr = newCPSR;
     }
 
-    uint32_t value = o2;
-    (*op_ptrs[opcode])(rn, value, rd);
 }
 
 int lsl(int reg, int shiftvalue) {
@@ -285,7 +394,7 @@ int lsr(int reg, int shiftvalue) {
 
 int asr(int reg, int shiftvalue) {
   if (shiftvalue != 0) {
-    _Bool lastbit = read_bit(reg, instlgth - 1);
+    bool lastbit = read_bit(reg, instlgth - 1);
     carryout = read_bit(reg, shiftvalue - 1);
     int reglsr = lsr(reg, shiftvalue);
     if (lastbit) {
@@ -300,36 +409,108 @@ int asr(int reg, int shiftvalue) {
 }
 
 int ror(int reg, int shiftvalue) {
-  return rotatateright(reg, shiftvalue);
+  return rotate_right(reg, shiftvalue);
 }
 
-void single_data_transfer(uint32_t instruction) {
-  const int bit_I = 25;
-  const int bit_P = 24;
-  const int bit_U = 23;
-  const int bit_L = 20;
-  const int rn_strt = 16;
-  const int rd_strt = 12;
-  const int offset_strt = 0;
 
-  int rn = extractbits(instruction, rn_strt, 4);
-  int rd = extractbits(instruction, rd_strt, 4);
+//reading start from right to left. begin with index 0
+bool read_bit(int instruction, int index) { 
+  return extract_bits(instruction, index, 1) == 1;
+}
+
+// start is the start bit from where we extract the bits
+// length is how many bits we want to extract
+// instruction is from where we want to extract
+int extract_bits(int instruction, int start, int length) {       
+  if (start > 31 || start < 0) {                           
+    printf("%s\n", "take int error");                   
+    printf("start = %d, length = %d\n", start, length);
+    return 0;
+  } else {
+      instruction >>= start;
+      int mask = (1 << length) - 1;
+      return mask & instruction;     
+  }
+
+
+int rotate_right(int x, int y) {
+  if (y != 0) {
+    carryout = read_bit(x, y-1);
+    int firstYbits = x << (32 - y);
+    int lastbits   = x >> y;
+    return (firstYbits | lastbits);
+   } else {
+    return x;
+   }   
+}
+
+void branch (uint32_t fetched) {
+  const int cond = extract_bits(fetched, 28, 4);
+  if (!condition(cond)) {
+    printf("\nlol you fag\n");
+    return;
+  }
+  
+  int offset = extract_bits(fetched, 0, 24);
+  offset = offset << 2;
+  int32_t move = offset;
+  pc += move;
+}
+
+void output_machine_state(void) {
+  printf("Registers:\n");
+  for(int i=0; i<13; i++) {
+    printf("$%-3d: %10d (%0#10x)\n", i, registers[i], registers[i]);
+  }
+  
+  printf("PC  : %10d (%0#10x)\n", pc, pc);
+  printf("CPSR: %10d (%0#10x)\n", cpsr, cpsr);
+
+  printf("Non-zero memory:\n");
+
+  for(uint32_t i=0; i< MEM_SIZE; i+=4) {
+    uint32_t fetched = 0;
+    int j;
+    for(j=0; j<3; j++) {
+      fetched += memory[i+j];
+      fetched = fetched << 8;
+    }
+    fetched += memory[i+j];
+    uint32_t index = 0;
+    index = index << 24;
+    index += i; 
+    if (fetched != 0) { 
+      printf("%0#10x: %0#10x\n", index, fetched);
+    }
+  }
+
+void single_data_transfer(uint32_t instruction) {
+  bool i = read_bit(instruction, 25); // immediate offset. set -> shifted reg
+  bool p = read_bit(instruction, 24); // pre/post bit. set -> pre
+  bool u = read_bit(instruction, 23); // up bit. set -> add
+  bool l = read_bit(instruction, 20); // load/store bit. set -> load
+
+  int rn_strt = 16;
+  int rd_strt = 12;
+  int offset_strt = 0;
+  int rn = extract_bits(instruction, rn_strt, 4);
+  int rd = extract_bits(instruction, rd_strt, 4);
 
   int offset;
 
-  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+  if (i) { // I = 1, offset is shifted reg
     printf("I = 1\n");
-    int rm         = extractbits(instruction, offset_strt, 4);
+    int rm         = extract_bits(instruction, offset_strt, 4);
     int valrm      = registers[rm]; // value of register
-    int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
+    int shifttype  = extract_bits(instruction, 5, 2); //4 possible shift codes
     int shiftvalue = 0;
-    if (read_bit(instruction, 4)) { // if bit 4 is 1
-      int rs = extractbits(instruction, 8, 4);
+    if (read_bit(instruction, 4)) { // if bit 4 is set
+      int rs = extract_bits(instruction, 8, 4);
       int valrs = registers[rs]; // value of the register
-      int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
+      int bottombyte = extract_bits(valrs, 24, 8); // last 8 bits of valrs
       shiftvalue = bottombyte;
     } else { // if bit 4 is 0
-      shiftvalue = extractbits(instruction, 7, 5);
+      shiftvalue = extract_bits(instruction, 7, 5);
     }
     switch (shifttype) {
       case (0) :
@@ -350,90 +531,53 @@ void single_data_transfer(uint32_t instruction) {
     }
     printf("offset = %d\n", offset); 
   } else { // I = 0, offset is immediate
-    printf("I = 0\n");
-    unsigned int imm    = extractbits(instruction, offset_strt, 8);
-    unsigned int rotate = extractbits(instruction, 8, 4);
-    rotate              <<= 2;
-    offset              = rotatateright(imm, rotate);
+    offset = extract_bits(instruction, offset_strt, 12);
   }
 
-  if (read_bit(instruction, bit_P)) {
-    // offset added/subtracted before transfer
-    if (read_bit(instruction, bit_U)) {
-      // add to base reg
-      offset += registers[rn];
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        registers[rd] = memory[offset];
-      } else {
-        // store in memory
-        memory[offset] = registers[rd];
-      }
+  if (!u) { // check whether we are adding/subtracting
+    offset = -offset;
+  }
+
+  if (p) {
+    // pre-indexing
+    // Need case where PC is the base register Rn
+    if (l) {
+      // load 
+      registers[rd] = load_mem_word(registers[rn] + offset);
     } else {
-      // subtract from base reg
-      offset -= registers[rn];
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        registers[rd] = memory[offset];
-      } else {
-        memory[offset] = registers[rd];
-      }
+      // store
+      store_mem_word(registers[rd], registers[rn] + offset);
     }
-
   } else {
-    // offset added/subtracted after transfer
-    if (read_bit(instruction, bit_U)) {
-      // add to base reg
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        registers[rd] = memory[registers[rn]];
-      } else {
-        // store in memory
-        memory[registers[rn]] = registers[rd];
-      }
-      registers[rn] += offset;
+    // post-indexing
+    if (rn == rm) { 
+      printf("Error: Rn cannot be the same as Rm for post-indexing str/ldr\n");
     } else {
-      // subtract from base reg
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        registers[rd] = memory[registers[rn]];
+      if (l) {
+        // load 
+        registers[rd] = load_mem_word(registers[rn]);
       } else {
-        memory[registers[rn]] = registers[rd];
+        // store
+        store_mem_word(registers[rd], registers[rn]);
       }
-      registers[rn] -= offset;
-    }    
-
+      registers[rn] += offset; 
+    }
   }
 }
 
-//reading start from right to left. begin with index 0
-_Bool read_bit(int instruction, int index) { 
-  return extractbits(instruction, index, 1) == 1;
+// extracts 32-bit word from memory from startAddr
+uint32_t load_mem_word(uint32_t startAddr) { 
+  uint32_t word = 0;
+  // memory is little endian but instruction is read normally
+  for (int i = 0; i < 4; i++) {
+    word = word | ((uint32_t)memory[startAddr + i] << (8*i));
+  }
+  return word;
 }
 
-// start is the start bit from where we extract the bits
-// length is how many bits we want to extract
-// instructionm is from where we want to extract
-int extractbits(int instruction, int start, int length) {       
-  if (start > 31 || start < 0) {                           
-    printf("%s\n", "take int error");                   
-    printf("start = %d, length = %d\n", start, length);
-    return 0;
-  } else {
-    instruction >>= start;
-    int mask = (1 << length) - 1;
-    return mask & instruction;     
+// stores 32-bit word in memory starting from startAddr
+void store_mem_word(uint32_t word, uint32_t startAddr) { 
+  for (int i = 0; i < 4; i++) {
+    mem[startAddr+i] = extract_bits(word, 8*i, 8);
   }
 }
-
-int rotatateright(int x, int y) {
-  if (y != 0) {
-    //carryout = read_bit(x, y-1);
-    int firstYbits = x << (32 - y);
-    int lastbits = x >> y;
-    return (firstYbits | lastbits);
-  } else {
-   return x;
-  }
-}
-
