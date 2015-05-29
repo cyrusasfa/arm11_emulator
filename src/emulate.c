@@ -185,6 +185,9 @@ void dataprocessing(int instruction){
   int o2;
   int bitS          = 20;
   int bitI          = 25;
+  int opcode_strt   = 21;
+  int rn_strt       = 16;
+  int rd_strt       = 12;
   int immstrt       = 0;
   int immlgth       = 8;
   int rotstrt       = 8;
@@ -206,7 +209,11 @@ void dataprocessing(int instruction){
   op_ptrs[12] = orr;
   op_ptrs[13] = mov;
   // to call a function we do:
-  // (*op_ptrs[opcode])(rn, value rd)
+  // (*op_ptrs[opcode])(rn, value, rd)
+  
+  int opcode = extractbits(instruction, opcode_strt, 4);
+  uint32_t rn = registers[extractbits(instruction, rn_strt, 4)];
+  uint32_t rd = registers[extractbits(instruction, rd_strt, 4)];
 
   if (read_bit(instruction, bitS)) {
     flagS = true;
@@ -220,39 +227,42 @@ void dataprocessing(int instruction){
     o2                  = rotatateright(imm, rotate);
     // o2 when I = 1
   } else { // I = 0  we shift register
-        printf("I = 0\n");
-        int rm         = extractbits(instruction, rmstrt, rmlngth);
-        int valrm      = registers[rm]; // value of register
-        int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
-        int shiftvalue = 0;
-        if (read_bit(instruction, operand2bit4)) { // if bit 4 is 1
-            int rs = extractbits(instruction, 8, 4);
-            int valrs = registers[rs]; // value of the register
-            int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
-            shiftvalue = bottombyte;
-        } else { // if bit 4 is 0
-            shiftvalue = extractbits(instruction, 7, 5);
-        }
-        switch (shifttype) {
-          case (0) :
-            o2 = lsl(valrm, shiftvalue);
-            break;
-          case (1) :
-            o2 = lsr(valrm, shiftvalue);
-            break;
-          case (2) :
-            o2 = asr(valrm, shiftvalue);
-            break;
-          case (3) :
-            o2 = ror(valrm, shiftvalue);
-            break;
-          default :
-            printf("Error in choosing shift type\n");
-            return;
-        }
-        // o2 when I = 0
-        printf("o2 = %d\n", o2); 
+    printf("I = 0\n");
+    int rm         = extractbits(instruction, rmstrt, rmlngth);
+    int valrm      = registers[rm]; // value of register
+    int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
+    int shiftvalue = 0;
+    if (read_bit(instruction, operand2bit4)) { // if bit 4 is 1
+      int rs = extractbits(instruction, 8, 4);
+      int valrs = registers[rs]; // value of the register
+      int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
+      shiftvalue = bottombyte;
+    } else { // if bit 4 is 0
+      shiftvalue = extractbits(instruction, 7, 5);
     }
+    switch (shifttype) {
+      case (0) :
+        o2 = lsl(valrm, shiftvalue);
+        break;
+      case (1) :
+        o2 = lsr(valrm, shiftvalue);
+        break;
+      case (2) :
+        o2 = asr(valrm, shiftvalue);
+        break;
+      case (3) :
+        o2 = ror(valrm, shiftvalue);
+        break;
+      default :
+        printf("Error in choosing shift type\n");
+        return;
+      }
+      // o2 when I = 0
+      printf("o2 = %d\n", o2); 
+    }
+
+    uint32_t value = o2;
+    (*op_ptrs[opcode])(rn, value, rd);
 }
 
 int lsl(int reg, int shiftvalue) {
@@ -410,20 +420,20 @@ int extractbits(int instruction, int start, int length) {
     printf("start = %d, length = %d\n", start, length);
     return 0;
   } else {
-      instruction >>= start;
-      int mask = (1 << length) - 1;
-      return mask & instruction;     
+    instruction >>= start;
+    int mask = (1 << length) - 1;
+    return mask & instruction;     
   }
 }
 
 int rotatateright(int x, int y) {
-   if (y != 0) {
-     //carryout = read_bit(x, y-1);
-     int firstYbits = x << (32 - y);
-     int lastbits = x >> y;
-     return (firstYbits | lastbits);
-   } else {
-    return x;
-   }
+  if (y != 0) {
+    //carryout = read_bit(x, y-1);
+    int firstYbits = x << (32 - y);
+    int lastbits = x >> y;
+    return (firstYbits | lastbits);
+  } else {
+   return x;
+  }
 }
 
