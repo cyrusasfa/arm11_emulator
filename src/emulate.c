@@ -81,14 +81,8 @@ int main(int argc, char **argv) {
     //Parse binary file and upload contents into memory
   
   uint32_t fetched;
-  //void *decoded = NULL;
+
   
-  //while () {
-    // execute(decoded);
-    // decoded = decode(fetched);
-    // fetched = fetch(pc);
-    // pc += 4;    
-  //}
 
   fetched = fetch(0);
   printf("%u", fetched);
@@ -194,56 +188,7 @@ void dataprocessing(int instruction){
         // o2 when I = 0
         printf("o2 = %d\n", o2); 
     }
-
- 
-
-
-   
-
-
 }
-
-int lsl(int reg, int shiftvalue) {
-  if (shiftvalue != 0) {
-    carryout = readbit(reg, instlgth - shiftvalue);
-    return reg << shiftvalue;
-  } else {
-    return reg;
-  }
-}
-
-int lsr(int reg, int shiftvalue) {
-  if (shiftvalue != 0) {
-    carryout = readbit(reg, shiftvalue - 1);
-    return reg >> shiftvalue;
-  } else {
-    return reg;
-  }
-}
-
-
-int asr(int reg, int shiftvalue) {
-  if (shiftvalue != 0) {
-    _Bool lastbit = readbit(reg, instlgth - 1);
-    carryout = readbit(reg, shiftvalue - 1);
-    int reglsr = lsr(reg, shiftvalue);
-    if (lastbit) {
-      int mask = (1 << shiftvalue) - 1;
-      return reglsr | mask;
-    } else {
-      return reglsr;
-    }
-  } else {
-    return reg;
-  }
-}
-
-int ror(int reg, int shiftvalue) {
-  return rotateright(reg, shiftvalue);
-
-}
-
-
 
 
 
@@ -286,67 +231,67 @@ _Bool checkCond (int instruction) {
 }
 
 
-void single_data_transfer(uint32_t instruction) {
-  const int bit_I = 25;
-  const int bit_P = 24;
-  const int bit_U = 23;
-  const int bit_L = 20;
-  const int rn_strt = 16;
-  const int rd_strt = 12;
-  const int offset_strt = 0;
+// void single_data_transfer(uint32_t instruction) {
+//   const int bit_I = 25;
+//   const int bit_P = 24;
+//   const int bit_U = 23;
+//   const int bit_L = 20;
+//   const int rn_strt = 16;
+//   const int rd_strt = 12;
+//   const int offset_strt = 0;
 
-  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
-    // STMTS
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-  } else { // I = 0 offset is immediate
-    if (read_bit(instruction, bit_P)) {
-      // offset added/subtracted before transfer
-      if (read_bit(instruction, bit_U)) {
-        // add to base reg
-        if (read_bit(instruction, bit_L)) {
-          // load from memory
-        } else {
-          // store in memory
-        }
-      } else {
-        // subtract from base reg
-        if (read_bit(instruction, bit_L)) {
-          // load from memory
-        } else {
-          // store in memory
-        }
-      }
+//   if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+//     // STMTS
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//     //
+//   } else { // I = 0 offset is immediate
+//     if (read_bit(instruction, bit_P)) {
+//       // offset added/subtracted before transfer
+//       if (read_bit(instruction, bit_U)) {
+//         // add to base reg
+//         if (read_bit(instruction, bit_L)) {
+//           // load from memory
+//         } else {
+//           // store in memory
+//         }
+//       } else {
+//         // subtract from base reg
+//         if (read_bit(instruction, bit_L)) {
+//           // load from memory
+//         } else {
+//           // store in memory
+//         }
+//       }
 
-    } else {
-      // offset added/subtracted after transfer
-      if (read_bit(instruction, bit_U)) {
-        // add to base reg
-      } else {
-        // subtract from base reg
-      }
-    }
-  }
-}
+//     } else {
+//       // offset added/subtracted after transfer
+//       if (read_bit(instruction, bit_U)) {
+//         // add to base reg
+//       } else {
+//         // subtract from base reg
+//       }
+//     }
+//   }
+// }
 
 
