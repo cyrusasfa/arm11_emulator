@@ -355,13 +355,10 @@ void branch (uint32_t fetched) {
 
 void output_machine_state(void) {
   printf("Registers:\n");
-  for(int i=0; i<10; i++) {
+  for(int i=0; i<13; i++) {
     printf("$%-3d: %10d (%0#10x)\n", i, registers[i], registers[i]);
   }
-  for(int i=10; i<13; i++) {
-    printf("$%-3d: %10d (%0#10x)\n", i , registers[i], registers[i]);
-  }
-
+  
   printf("PC  : %10d (%0#10x)\n", pc, pc);
   printf("CPSR: %10d (%0#10x)\n", cpsr, cpsr);
 
