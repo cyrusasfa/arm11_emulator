@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -90,11 +91,15 @@ int main(int argc, char **argv) {
   //uint32_t fetched;
   //void *decoded = NULL;
   
-
-  output_machine_state();
+  //while () {
+    // execute(decoded);
+    // decoded = decode(fetched);
+    // fetched = fetch(pc);
+    // pc += 4;    
+  //}
 
   free(memory); 
-    
+  output_machine_state();
   return EXIT_SUCCESS; 
 }
 
@@ -193,10 +198,101 @@ bool condition(int cond_code) {
   return (*check_cpsr[cond_code])();
 }
 
+uint32_t set_bit(uint32_t number, int bit) {
+	int ret = number;
+	if (!read_bit(number, bit)) {
+		ret += pow (2, bit);
+	}
+	return ret;
+}
+
+uint32_t reset_bit(uint32_t number, int bit) {
+	int ret = number;
+	if (read_bit(number, bit)) {
+		ret -= pow (2, bit);
+	}
+	return ret;
+}
+
+uint32_t set_bit_z(uint32_t number, uint32_t res) {
+	uint32_t ret = number;
+	if (res == 0) {
+		ret = set_bit(number, 30);
+	} else {
+		ret = reset_bit(number,30);
+	}
+	
+	return ret;
+}
+
+
+// Assume operand 2 has been processed to give the value
+// Need to do the operand 2 processing
+uint32_t and(uint32_t rn, uint32_t value, uint32_t rd) {
+  registers[rd] = rn & value;
+  uint32_t ret = cpsr;
+}
+
+uint32_t eor(uint32_t rn, uint32_t value, uint32_t rd) {
+  registers[rd] = rn ^ value;
+  return rd;
+}
+
+uint32_t sub(uint32_t rn, uint32_t value, uint32_t rd) {
+  registers[rd] = rn - value;
+  return rd;
+}
+
+uint32_t rsb(uint32_t rn, uint32_t value, uint32_t rd) {
+  registers[rd] = value - rn;
+  return rd;
+}
+
+uint32_t add(uint32_t rn, uint32_t value, uint32_t rd) {
+  registers[rd] = rn + value;
+  uint32_t ret = cpsr;
+  if (value > pow(2 , 31) - rd){
+	carryout = true;
+	ret = set_bit(ret, 29);
+  } else {
+	ret = reset_bit(ret, 29);
+  }
+  
+  if(registers[rd] == 0) {
+	ret = set_bit(
+  }
+  return ret;
+}
+
+uint32_t tst(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn & value);
+}
+
+uint32_t teq(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn ^ value);  
+}
+
+uint32_t cmp(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn - value);
+}
+
+uint32_t orr(uint32_t rn, uint32_t value, uint32_t rd) {
+  return (rn | value);
+}
+
+uint32_t mov(uint32_t rn, uint32_t value, uint32_t rd) {
+  registers[rd] = value;
+  return rd;
+}
+
 void data_processing(int instruction){
+  
   int o2;
   int bitS          = 20;
   int bitI          = 25;
+  int opcode_strt   = 21;
+  int rn_strt       = 16;
+  int rd_strt       = 12;
   int immstrt       = 0;
   int immlgth       = 8;
   int rotstrt       = 8;
@@ -205,13 +301,26 @@ void data_processing(int instruction){
   int rmlngth       = 4;
   int operand2bit4  = 4;
   
-  bool flagS       = false;
-  carryout          = false;
-  if (read_bit(instruction, bitS)) {
-    flagS = true;
-    // should update CPSR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    printf("Set flag S\n");
-  }
+  uint32_t (*op_ptrs[14])(uint32_t rn, uint32_t value, uint32_t rd);
+  op_ptrs[0] = and;
+  op_ptrs[1] = eor;
+  op_ptrs[2] = sub;
+  op_ptrs[3] = rsb;
+  op_ptrs[4] = add;
+  op_ptrs[8] = tst;
+  op_ptrs[9] = teq;
+  op_ptrs[10] = cmp;
+  op_ptrs[12] = orr;
+  op_ptrs[13] = mov;
+  // to call a function we do:
+  // (*op_ptrs[opcode])(rn, value, rd)
+  
+  int opcode = extractbits(instruction, opcode_strt, 4);
+  uint32_t rn = registers[extractbits(instruction, rn_strt, 4)];
+  uint32_t rd = extractbits(instruction, rd_strt, 4);
+  
+  carryout = false;
+  
   if (read_bit(instruction, bitI)) { // I = 1 if operand 2 is an immediat value
     printf("I = 1\n");
     unsigned int imm    = extract_bits(instruction, immstrt, immlgth);
@@ -253,6 +362,13 @@ void data_processing(int instruction){
         // o2 when I = 0
         printf("o2 = %d\n", o2); 
     }
+    
+    uint32_t value = o2;
+    uint32_t newCPSR = (*op_ptrs[opcode])(rn, o2, rd);
+    
+    if (read_bit(instruction, bitS)) {
+    cpsr = newCPSR;
+  }
 
 }
 
@@ -313,7 +429,7 @@ int extract_bits(int instruction, int start, int length) {
       int mask = (1 << length) - 1;
       return mask & instruction;     
   }
-}
+
 
 int rotate_right(int x, int y) {
   if (y != 0) {
@@ -364,5 +480,107 @@ void output_machine_state(void) {
     if (fetched != 0) { 
       printf("%0#10x: %0#10x\n", index, fetched);
     }
+  }
+
+void single_data_transfer(uint32_t instruction) {
+  const int bit_I = 25;
+  const int bit_P = 24;
+  const int bit_U = 23;
+  const int bit_L = 20;
+  const int rn_strt = 16;
+  const int rd_strt = 12;
+  const int offset_strt = 0;
+
+  int rn = extractbits(instruction, rn_strt, 4);
+  int rd = extractbits(instruction, rd_strt, 4);
+
+  int offset;
+
+  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+    printf("I = 1\n");
+    int rm         = extractbits(instruction, offset_strt, 4);
+    int valrm      = registers[rm]; // value of register
+    int shifttype  = extractbits(instruction, 5, 2);//4 possible shift codes
+    int shiftvalue = 0;
+    if (read_bit(instruction, 4)) { // if bit 4 is 1
+      int rs = extractbits(instruction, 8, 4);
+      int valrs = registers[rs]; // value of the register
+      int bottombyte = extractbits(valrs, 24, 8); // last 8 bits of valrs
+      shiftvalue = bottombyte;
+    } else { // if bit 4 is 0
+      shiftvalue = extractbits(instruction, 7, 5);
+    }
+    switch (shifttype) {
+      case (0) :
+        offset = lsl(valrm, shiftvalue);
+        break;
+      case (1) :
+        offset = lsr(valrm, shiftvalue);
+        break;
+      case (2) :
+        offset = asr(valrm, shiftvalue);
+        break;
+      case (3) :
+        offset = ror(valrm, shiftvalue);
+        break;
+      default :
+        printf("Error in choosing shift type\n");
+        return;
+    }
+    printf("offset = %d\n", offset); 
+  } else { // I = 0, offset is immediate
+    printf("I = 0\n");
+    unsigned int imm    = extractbits(instruction, offset_strt, 8);
+    unsigned int rotate = extractbits(instruction, 8, 4);
+    rotate              <<= 2;
+    offset              = rotatateright(imm, rotate);
+  }
+
+  if (read_bit(instruction, bit_P)) {
+    // offset added/subtracted before transfer
+    if (read_bit(instruction, bit_U)) {
+      // add to base reg
+      offset += registers[rn];
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[offset];
+      } else {
+        // store in memory
+        memory[offset] = registers[rd];
+      }
+    } else {
+      // subtract from base reg
+      offset -= registers[rn];
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[offset];
+      } else {
+        memory[offset] = registers[rd];
+      }
+    }
+
+  } else {
+    // offset added/subtracted after transfer
+    if (read_bit(instruction, bit_U)) {
+      // add to base reg
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[registers[rn]];
+      } else {
+        // store in memory
+        memory[registers[rn]] = registers[rd];
+      }
+      registers[rn] += offset;
+    } else {
+      // subtract from base reg
+      if (read_bit(instruction, bit_L)) {
+        // load from memory
+        registers[rd] = memory[registers[rn]];
+      } else {
+        memory[registers[rn]] = registers[rd];
+      }
+      registers[rn] -= offset;
+    }    
+
   }
 }
