@@ -6,15 +6,18 @@
 #include <string.h>
 
 #define MAX_LENGTH (512)
-struct Tokenised {
+#define MAX_OPERANDS (3)
+
+struct Instruction {
+   int numOperands;
    char* label;
    char* opcode;
-   char* operands[];
+   char * operands[MAX_OPERANDS];
 };
 
-void writeToOutput(FILE *dst, int x);
+void write_to_output(FILE *dst, int x);
 
-void tokenise(struct Tokenised parsedinput[], FILE* src);
+void tokeniseLine(struct Instruction*  parsedinput, FILE* src);
 
 int getnumlines(FILE* src);
 
@@ -32,9 +35,9 @@ int main(int argc, char **argv) {
   
   assert (src != NULL);
   assert (dst != NULL);
-  
-  struct Tokenised parsedinput[getnumlines(src)];      
-  tokenise(parsedinput, src);
+  const int linenum = getnumlines(src);
+  struct Instruction instructions[linenum];      
+  tokeniseLine(instructions, src);
     
       
   
@@ -55,12 +58,31 @@ int getnumlines(FILE* src) {
   while (fgets(str, MAX_LENGTH, src)) {
     num++;
   }
+  fseek(src, 0, SEEK_SET);
   return num;
 }
-void tokenise(struct Tokenised parsedinput[], FILE* src) {
+
+void tokeniseLine(struct Instruction* instructions, FILE* src) {
   char line[MAX_LENGTH];
   for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
-    parsedinput[i].label = strtok(line, ":");
-    printf("%s\n", parsedinput[i].label);
+    instructions[i].numOperands = 0;
+    if (strchr(line, ':')) {
+      instructions[i].label = strtok(line, ":");
+      printf("%s\n", instructions[i].label);
+    }
+    else {
+      instructions[i].opcode = strtok(line, " ");
+      printf("%s\n", instructions[i].opcode);  
+      char* nextOperand = strtok(NULL, ",");
+      while(nextOperand!= NULL) {
+        instructions[i].operands[instructions[i].numOperands]
+         = nextOperand;
+        nextOperand = strtok(NULL, ",");
+        instructions[i].numOperands ++;
+      }
+      for (int j = 0; j < instructions[i].numOperands; j++) {
+          printf("%s\n", instructions[i].operands[j]);
+      }
+    }
   }
 }
