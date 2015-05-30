@@ -13,19 +13,19 @@ void set_flags_logic(struct machine_state *mach, int32_t res) {
   if(mach->shifter_carryout) {     
     set_bit(mach->registers[16], 29);//Set C flag
   } else {
-    clear_bit(match->registers[16], 29);//Clear C flag
+    clear_bit(mach->registers[16], 29);//Clear C flag
   }
 
   if(res == 0) {
     set_bit(mach->registers[16], 30);//Set Z flag
   } else {
-    clear_bit(match->registers[16], 30);//Set Z flag
+    clear_bit(mach->registers[16], 30);//Set Z flag
   }
 
   if (read_bit(res, 31)) {
-    set_bit(match->registers[16], 31);//Set N flag
+    set_bit(mach->registers[16], 31);//Set N flag
   } else {
-    clear_bit(match->registers[16], 31);//Clear N flag
+    clear_bit(mach->registers[16], 31);//Clear N flag
   }
 }
 
@@ -38,17 +38,17 @@ void set_flags_arithmetic(struct machine_state *mach, int32_t res) {
   if(res == 0) {
     set_bit(mach->registers[16], 30);//Set Z flag
   } else {
-    clear_bit(match->registers[16], 30);//Set Z flag
+    clear_bit(mach->registers[16], 30);//Set Z flag
   }
 
   if (read_bit(res, 31)) {
-    set_bit(match->registers[16], 31);//Set N flag
+    set_bit(mach->registers[16], 31);//Set N flag
   } else {
-    clear_bit(match->registers[16], 31);//Clear N flag
+    clear_bit(mach->registers[16], 31);//Clear N flag
   }
 }
 
-void and(int* args, struct machine_state *mach) {
+void and(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] & args[1];
   mach->registers[args[2]] = res;
   if(args[3] == 1) {
@@ -56,7 +56,7 @@ void and(int* args, struct machine_state *mach) {
   }
 }
 
-void eor(int* args, struct machine_state *mach) {
+void eor(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] ^ args[1];
   mach->registers[args[2]] = res;
   if(args[3]) {
@@ -64,19 +64,19 @@ void eor(int* args, struct machine_state *mach) {
   }
 }
 
-void sub(int* args, struct machine_state *mach) {
+void sub(int32_t* args, struct machine_state *mach) {
   args[1] = -args[1];
   add(args; mach);
 }
 
-void rsb(int* args, struct machine_state *mach) {
+void rsb(int32_t* args, struct machine_state *mach) {
   int32_t tmp = args[1];
   args[1] = args[0];
   args[0] = tmp;
   sub(args, mach);
 }
 
-void add(int* args, struct machine_state *mach) {
+void add(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] + args[1];
   if(args[0] > 0 && args[1] > ((pow(2,31) - 1) - args[0]) {
     mach->alu_carryout = true; 
@@ -87,21 +87,21 @@ void add(int* args, struct machine_state *mach) {
   }
 }
 
-void tst(int* args, struct machine_state *mach) {
+void tst(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] & args[1];
   if (args[3] == 1) {
     set_flags_logic(mach, res);
   }
 }
 
-void teq(int* args, struct machine_state *mach) {
+void teq(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] ^ args[1];
   if(args[3] ==1) {
     set_flags_logic(mach ,res);
   }
 }
 
-void cmp(int* args, struct machine_state *mach) {
+void cmp(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] - args[1];
   if (args[0] > 0 && (-args[1]) > ((pow(2,31) - 1) - args[1])){
     mach->alu_carryout = true;
@@ -111,7 +111,7 @@ void cmp(int* args, struct machine_state *mach) {
   }
 }
 
-void orr(int* args, struct machine_state *mach) {
+void orr(int32_t* args, struct machine_state *mach) {
   int32_t res = args[0] | args[1];
   mach->registers[args[2]] = res;
   if(arg[3] == 1) {
@@ -119,7 +119,7 @@ void orr(int* args, struct machine_state *mach) {
   }
 }
 
-void mov(int* args, struct machine_state *mach) {
+void mov(int32_t* args, struct machine_state *mach) {
   mach->registers[args[2]] = args[0];
   int32_t res = mach->registers[args[2]];
   if(args[3] == 1) {

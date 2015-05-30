@@ -14,12 +14,12 @@ void halt (int32_t *args, struct machine_state *mach) {
 }
 
 void fetch(int32_t pc, struct pipeline *pipeline, struct machine_state mach) {
-  pipeline->(*fetched) = 0;
-  for(int i=3, i > 0; --i) {
-    pipeline->(*fetched) += mach.memory[pc + i];
-    pipeline->(*fetched) <<= 8;
+  *(pipeline->fetched) = 0;
+  for(int i=3; i > 0; --i) {
+    *(pipeline->fetched) += mach.memory[pc + i];
+    *(pipeline->fetched) <<= 8;
   }
-  pipeline->(*fetched) += mach.memory[pc];
+  *(pipeline->fetched) += mach.memory[pc];
 }
 
 void decode(int32_t *instr, struct pipeline *pipeline,
@@ -29,9 +29,8 @@ void decode(int32_t *instr, struct pipeline *pipeline,
   }
 
   if (*instr == 0) {
-      return
+      return;
   }
-  
 
   int cond_code = extract_bits(*instr, 28,4);
   if (!(condition(cond_code, *mach))) {
