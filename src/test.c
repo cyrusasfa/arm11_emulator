@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   load_memory(file_name, &Machine); 
   
   while (Pipeline.decoded != &halt) {
-     pip_ptr->decoded (Pipeline.decoded_args, &Machine);
+     (pip_ptr->decoded) (Pipeline.decoded_args, &Machine);
      decode(Pipeline.fetched, &Pipeline, &Machine);
      fetch(pc, &Pipeline, Machine);
      pc += 4;
