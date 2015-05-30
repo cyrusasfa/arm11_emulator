@@ -1,18 +1,18 @@
 #ifndef DATA_PROCESSING_H
 #define DATA_PROCESSING_H
-
+#include "machine.h"
 int* process_args(int32_t instr, struct machine_state *mach);
 
 void decode_data_proc(int32_t instr, struct pipeline *pip, struct machine_state 
                       *mach);
 
-int32_t lsl(int32_t num, int shift_val);
+int32_t lsl(int reg, int shiftvalue, struct machine_state *mach);
 
-int32_t lsr(int32_t num, int shift_val);
+int32_t lsr(int reg, int shiftvalue, struct machine_state *mach);
 
-int32_t asr(int32_t num, int shift_val);
+int32_t asr(int reg, int shiftvalue, struct machine_state *mach);
 
-int32_t ror(int32_t num, int shift_val);
+int32_t ror(int reg, int shiftvalue, struct machine_state *mach);
 
 void and(int32_t* args, struct machine_state *mach);
 
