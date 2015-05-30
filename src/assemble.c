@@ -172,17 +172,17 @@ void double_space(Map *map) {
 //   }
 //   Node *curr = map->root;
 //   while (has_next(curr)) {
-//   	if (strcmp(curr->key, k) == 0) {
+//     if (strcmp(curr->key, k) == 0) {
 //       return curr->value;
-//   	}
-//   	curr = curr->next;
+//     }
+//     curr = curr->next;
 //   }
 //   printf("Key not found: %s/n", k);
 // }
 
 // void insert(Map *map, char *k, int v) {
 //   if (map->size == 0) {
-//   	map->root = malloc(sizeof(Node));
+//   	map->root = (Node *)malloc(sizeof(Node));
 //   	(map->root)->key = k;
 //   	(map->root)->value = v;
 //   	(map->root)->has_next = false;
@@ -191,7 +191,7 @@ void double_space(Map *map) {
 //   	while (has_next(curr)) {
 //       curr = curr->next
 //   	}
-//   	Node *new = malloc(sizeof(Node));
+//   	Node *new = (Node *)malloc(sizeof(Node));
 //   	new->key = k;
 //   	new->value = v;
 //   	new->has_next = false;
