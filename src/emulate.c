@@ -431,6 +431,7 @@ int extract_bits(int instruction, int start, int length) {
       int mask = (1 << length) - 1;
       return mask & instruction;     
   }
+}
 
 
 int rotate_right(int x, int y) {
@@ -483,6 +484,7 @@ void output_machine_state(void) {
       printf("%0#10x: %0#10x\n", index, fetched);
     }
   }
+}
 
 void single_data_transfer(uint32_t instruction) {
   bool i = read_bit(instruction, 25); // immediate offset. set -> shifted reg
@@ -565,19 +567,19 @@ void single_data_transfer(uint32_t instruction) {
   }
 }
 
-// extracts 32-bit word from memory from startAddr
-uint32_t load_mem_word(uint32_t startAddr) { 
+// extracts 32-bit word from memory starting from addr start
+uint32_t load_mem_word(uint32_t start) { 
   uint32_t word = 0;
   // memory is little endian but instruction is read normally
   for (int i = 0; i < 4; i++) {
-    word = word | ((uint32_t)memory[startAddr + i] << (8*i));
+    word = word | ((uint32_t)memory[start + i] << (8*i));
   }
   return word;
 }
 
 // stores 32-bit word in memory starting from startAddr
-void store_mem_word(uint32_t word, uint32_t startAddr) { 
+void store_mem_word(uint32_t word, uint32_t start) { 
   for (int i = 0; i < 4; i++) {
-    mem[startAddr+i] = extract_bits(word, 8*i, 8);
+    memory[start+i] = extract_bits(word, 8*i, 8);
   }
 }
