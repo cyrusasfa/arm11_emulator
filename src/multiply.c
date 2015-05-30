@@ -9,21 +9,38 @@
 #include "machine.h"
 #include "multiply.h"
 
+int32_t* get_args(int rd, int rn, int rs, int rm, struct machine_state *mach) {
+  int32_t arr[4] 
+    = {mach->registers[rm], mach->registers[rs], mach->registers[rn], rd};
+  int32_t *ret = arr;
+  return ret;
+}
 
-void decode_multiply(struct machine_state *mach, uint32_t instruction) {
-  const _Bool bitA = read_bit(instruction, 21);
-  const _Bool bitS = read_bit(instruction, 20);
-  const int Rd     = extract_bits(instruction, 16, 4);
-  const int Rn     = extract_bits(instruction, 12, 4);  
-  const int Rs     = extract_bits(instruction, 8, 4);
-  const int Rm     = extract_bits(instruction, 0, 4);
-  if (bitA == 1) {
-    mach -> registers[Rd] = mach -> registers[Rm] * mach -> registers[Rs] +
-                                                         mach -> registers[Rn];
-  }
-  else {
-    mach -> registers[Rd] = mach -> registers[Rm] * mach -> registers[Rs];
-  }
+void multiply(int32_t *args, struct machine_state *mach) {
+  mach->registers[args[3]] = args[0] * args[1];  
+}
+
+void multiply_acc(int32_t *args, struct machine_state *mach) {
+  mach->registers[args[3]] = args[0] * args[1] + args[2];
+}
+
+void decode_multiply(int32_t instr, struct pipeline *pip, 
+                      struct machine_state *mach) {
+  const bool bitA = read_bit(instr, 21);
+  const bool bitS = read_bit(instr, 20);
+  const int Rd     = extract_bits(instr, 16, 4);
+  const int Rn     = extract_bits(instr, 12, 4);  
+  const int Rs     = extract_bits(instr, 8, 4);
+  const int Rm     = extract_bits(instr, 0, 4);
+  
+  void (*mult_ptr[2]) (int32_t*, struct machine_state*);
+  mult_ptr[0] = &multiply;
+  mult_ptr[1] = &multiply_acc;
+
+  pip->decoded = mult_ptr[bitA];
+  pip->decoded_args = get_args(Rd, Rn, Rs, Rm, mach);
+  
+  //Setting the flags
   if (bitS == 1) {
     mach -> registers[16] = 
       changebit(mach -> registers[16], 31, read_bit(mach -> registers[Rd], 31));

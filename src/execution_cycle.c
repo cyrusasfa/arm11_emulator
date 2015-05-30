@@ -8,6 +8,7 @@
 #include "execution_cycle.h"
 #include "utility.h"
 #include "data_processing.h"
+#include "multiply.h"
 
 void halt (int32_t *args, struct machine_state *mach) {
   return;
