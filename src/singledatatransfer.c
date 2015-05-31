@@ -11,23 +11,21 @@
 #include "singledatatransfer.h"
 
 
-
-
 void decode_data_trans(struct machine_state *mach, uint32_t instruction) {
-  const int bit_I = 25;
-  const int bit_P = 24;
-  const int bit_U = 23;
-  const int bit_L = 20;
-  const int rn_strt = 16;
-  const int rd_strt = 12;
-  const int offset_strt = 0;
+  bool i = read_bit(instruction, 25); // immediate offset. set -> shifted reg
+  bool p = read_bit(instruction, 24); // pre/post bit. set -> pre
+  bool u = read_bit(instruction, 23); // up bit. set -> add
+  bool l = read_bit(instruction, 20); // load/store bit. set -> load
 
+  int rn_strt = 16;
+  int rd_strt = 12;
+  int offset_strt = 0;
   int rn = extract_bits(instruction, rn_strt, 4);
   int rd = extract_bits(instruction, rd_strt, 4);
 
   int offset;
 
-  if (read_bit(instruction, bit_I)) { // I = 1 so offset is shifted reg
+  if (i) { // I = 1 so offset is shifted reg
     printf("I = 1\n");
     int rm         = extract_bits(instruction, offset_strt, 4);
     int shifttype  = extract_bits(instruction, 5, 2);//4 possible shift codes
@@ -56,60 +54,55 @@ void decode_data_trans(struct machine_state *mach, uint32_t instruction) {
         printf("Error in choosing shift type\n");
         return;
     }
-    printf("offset = %d\n", offset); 
+    printf("offset = %d\n", offset);  
   } else { // I = 0, offset is immediate
-    printf("I = 0\n");
-    unsigned int imm    = extract_bits(instruction, offset_strt, 8);
-    unsigned int rotate = extract_bits(instruction, 8, 4);
-    rotate              <<= 2;
-    offset              = ror(imm, rotate); // rotate right
+    offset = extract_bits(instruction, offset_strt, 12);
   }
 
-  if (read_bit(instruction, bit_P)) {
-    // offset added/subtracted before transfer
-    if (read_bit(instruction, bit_U)) {
-      // add to base reg
-      offset += mach -> registers[rn];
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        mach -> registers[rd] = mach -> memory[offset];
-      } else {
-        // store in memory
-        mach -> memory[offset] = mach -> registers[rd];
-      }
+  if (!u) { // check whether we are adding/subtracting
+    offset = -offset;
+  }
+
+  if (p) {
+    // pre-indexing
+    // Need case where PC is the base register Rn
+    if (l) {
+      // load 
+      mach->registers[rd] = load_mem_word(mach->registers[rn] + offset);
     } else {
-      // subtract from base reg
-      offset -= mach -> registers[rn];
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        mach -> registers[rd] = mach -> memory[offset];
-      } else {
-        mach -> memory[offset] = mach -> registers[rd];
-      }
+      // store
+      store_mem_word(mach->registers[rd], mach -> registers[rn] + offset);
     }
-
   } else {
-    // offset added/subtracted after transfer
-    if (read_bit(instruction, bit_U)) {
-      // add to base reg
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        mach -> registers[rd] = mach -> memory[mach -> registers[rn]];
-      } else {
-        // store in memory
-        mach -> memory[mach -> registers[rn]] = mach -> registers[rd];
-      }
-      mach -> registers[rn] += offset;
+    // post-indexing
+    if (rn == rm) { 
+      printf("Error: Rn cannot be the same as Rm for post-indexing str/ldr\n");
     } else {
-      // subtract from base reg
-      if (read_bit(instruction, bit_L)) {
-        // load from memory
-        mach -> registers[rd] = mach -> memory[mach -> registers[rn]];
+      if (l) {
+        // load 
+        mach->registers[rd] = load_mem_word(mach->registers[rn]);
       } else {
-        mach -> memory[mach -> registers[rn]] = mach -> registers[rd];
+        // store
+        store_mem_word(mach->registers[rd], mach->registers[rn]);
       }
-      mach -> registers[rn] -= offset;
-    }    
+      mach->registers[rn] += offset; 
+    }
+  }
+}
 
+// extracts 32-bit word from memory starting from addr start
+uint32_t load_mem_word(uint32_t start) { 
+  uint32_t word = 0;
+  // memory is little endian but instruction is read normally
+  for (int i = 0; i < 4; i++) {
+    word = word | ((uint32_t)mach->memory[start + i] << (8*i));
+  }
+  return word;
+}
+
+// stores 32-bit word in memory starting from startAddr
+void store_mem_word(uint32_t word, uint32_t start) { 
+  for (int i = 0; i < 4; i++) {
+    mach->memory[start+i] = extract_bits(word, 8*i, 8);
   }
 }
