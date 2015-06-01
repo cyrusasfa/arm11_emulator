@@ -10,9 +10,10 @@
 #include "multiply.h"
 
 int32_t* get_args(int rd, int rn, int rs, int rm, struct machine_state *mach) {
+  int32_t *ret = malloc (4 * sizeof(int32_t));
   int32_t arr[4] 
     = {mach->registers[rm], mach->registers[rs], mach->registers[rn], rd};
-  int32_t *ret = arr;
+  ret = &arr[0];
   return ret;
 }
 

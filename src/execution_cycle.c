@@ -9,18 +9,17 @@
 #include "utility.h"
 #include "data_processing.h"
 #include "multiply.h"
+#include "single_data_transfer.h"
+#include "branch.h"
 
-void halt (int32_t *args, struct machine_state *mach) {
-  return;
-}
-
-void fetch(int32_t pc, struct pipeline *pipeline, struct machine_state mach) {
-  *(pipeline->fetched) = 0;
+void fetch(int32_t pc, struct pipeline *pipeline, struct machine_state *mach) {
+  int instr = 0;
   for(int i=3; i > 0; --i) {
-    *(pipeline->fetched) += mach.memory[pc + i];
-    *(pipeline->fetched) <<= 8;
+    instr += mach->memory[pc + i];
+    instr <<= 8;
   }
-  *(pipeline->fetched) += mach.memory[pc];
+  instr += mach->memory[pc];
+  pipeline->fetched = &instr;
 }
 
 void decode(int32_t *instr, struct pipeline *pipeline,
@@ -30,6 +29,7 @@ void decode(int32_t *instr, struct pipeline *pipeline,
   }
 
   if (*instr == 0) {
+      pipeline->halt = 1;
       return;
   }
 
@@ -41,6 +41,7 @@ void decode(int32_t *instr, struct pipeline *pipeline,
   if (read_bit(*instr, 27)) {
     decode_branch(*instr, pipeline, mach);
   } else if (read_bit(*instr,26)) {
+    printf("got here\n");
     decode_data_trans(*instr, pipeline, mach);
   } else if (!(read_bit(*instr, 25)) && read_bit(*instr, 4) && read_bit(*instr,
             7)) {

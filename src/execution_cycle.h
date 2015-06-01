@@ -1,9 +1,7 @@
 #ifndef EXECUTION_CYCLE_H
 #define EXECUTION_CYCLE_H
 
-void halt (int32_t *args, struct machine_state *mach);
-
-void fetch(int32_t pc, struct pipeline *pipeline, struct machine_state mach);
+void fetch(int32_t pc, struct pipeline *pipeline, struct machine_state *mach);
 
 void decode(int32_t *instr, struct pipeline *pipeline, struct machine_state *mach);
 

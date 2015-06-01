@@ -7,7 +7,6 @@
 #include <math.h>
 #include "utility.h"
 #include "data_processing.h"
-#include "machine.h"
 
 #define INST_LGTH 32
 
@@ -175,11 +174,12 @@ int ror(int reg, int shiftvalue, struct machine_state *mach) {
    }   
 }
 
-int* process_args(int32_t instr, struct machine_state *mach) {
+int32_t* process_args(int32_t instr, struct machine_state *mach) {
   int32_t rn = extract_bits(instr, 16, 4);
   int32_t rd = extract_bits(instr, 12, 4);
   int32_t o2 = extract_bits(instr,0, 12);
   bool imm = read_bit(instr, 25);
+  int32_t flagS = read_bit(instr, 20);
 
   int (*shift_ptr[4]) (int x, int y, struct machine_state *mach);
   shift_ptr[0] = lsl;
@@ -200,9 +200,10 @@ int* process_args(int32_t instr, struct machine_state *mach) {
     uint8_t val = extract_bits(instr, 7, 5);
     o2 = (*shift_ptr[shift]) (mach->registers[reg], val, mach);
   }
-  
-  int32_t arr[4] = {rn, o2, rd, (int) read_bit(instr, 20)};
-  int32_t *ret = arr;
+
+  int32_t *ret = malloc(4* sizeof(int32_t));
+  int32_t arr[4] = {rn, o2, rd, flagS};
+  ret = &arr[0];
 
   return ret;
 }

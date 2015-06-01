@@ -10,16 +10,18 @@
 
 
 int32_t* get_arg(int offset) {
- return &offset; 
+  int32_t *ret = malloc (sizeof(int32_t));
+  ret = &offset;
+  return ret; 
 }
 
 void branch(int32_t *arg, struct machine_state *mach) {
   mach->registers[15] += arg[0];
 }
 
-void decode_branch(struct machine_state *mach,struct pipeline *pip,
- uint32_t fetched) {
-  int offset = extract_bits(fetched, 0, 24);
+void decode_branch(int32_t instr, struct pipeline *pip, struct machine_state
+                    *mach) {
+  int offset = extract_bits(instr, 0, 24);
   offset = offset << 2;
   int32_t move = offset;
   

@@ -1,6 +1,7 @@
 #ifndef DATA_PROCESSING_H
 #define DATA_PROCESSING_H
 #include "machine.h"
+
 int* process_args(int32_t instr, struct machine_state *mach);
 
 void decode_data_proc(int32_t instr, struct pipeline *pip, struct machine_state 
