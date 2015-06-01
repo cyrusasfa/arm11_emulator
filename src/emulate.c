@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     fetch(pc, pip_ptr, mach_ptr);
     pc += 4;
     cycle ++;
-    output_machine_state(mach_ptr);
+    //output_machine_state(mach_ptr);
   } 
   
   output_machine_state(mach_ptr);

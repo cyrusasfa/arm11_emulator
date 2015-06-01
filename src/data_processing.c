@@ -177,7 +177,7 @@ uint32_t ror(int reg, int shiftvalue, struct machine_state *mach) {
   } else {
     uint32_t ret = reg;
     //printf("%i shift is 0 ror\n", ret);
-    return reg;
+    return ret;
   }   
 }
 
