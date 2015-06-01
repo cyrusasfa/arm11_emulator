@@ -2,7 +2,7 @@
 #define DATA_PROCESSING_H
 #include "machine.h"
 
-uint32_t* process_args(uint32_t instr, struct machine_state *mach);
+void process_args(uint32_t instr,struct pipeline *pip,  struct machine_state *mach);
 
 void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state 
                       *mach);

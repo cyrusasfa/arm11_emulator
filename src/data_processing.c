@@ -122,10 +122,11 @@ void orr(uint32_t* args, struct machine_state *mach) {
 }
 
 void mov(uint32_t* args, struct machine_state *mach) {
-  printf("Got to the function to be executed\n");
-  printf("%i args[2]\n", args[2]);
-  mach->registers[args[2]] = args[0];
-  printf("Here maybe\n");
+  printf("Got to the mov function to be executed\n");
+  printf("MOV : %i args[1]\n", args[1]);
+  printf("MOV : %i args[2]\n", args[2]);
+  printf("MOV : %i args[3]\n", args[3]);
+  mach->registers[args[2]] = args[1];
   uint32_t res = mach->registers[args[2]];
   if(args[3] == 1) {
     set_flags_logic(mach, res);
@@ -168,19 +169,20 @@ uint32_t asr(int reg, int shiftvalue, struct machine_state *mach) {
 
 uint32_t ror(int reg, int shiftvalue, struct machine_state *mach) {
   if (shiftvalue != 0) {
-    printf("ror issue\n");
+    printf("ror : non zero shift\n");
     mach->shifter_carryout = read_bit(reg, shiftvalue-1);
     int firstYbits = reg << (32 - shiftvalue);
     int lastbits   = reg >> shiftvalue;
     return (firstYbits | lastbits);
   } else {
     uint32_t ret = reg;
-    printf("%i slut ror\n", ret);
+    printf("%i shift is 0 ror\n", ret);
     return reg;
   }   
 }
 
-uint32_t* process_args(uint32_t instr, struct machine_state *mach) {
+void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
+   *mach) {
   uint32_t rn = extract_bits(instr, 16, 4);
   uint32_t rd = extract_bits(instr, 12, 4);
   uint32_t o2 = extract_bits(instr,0, 12);
@@ -210,12 +212,12 @@ uint32_t* process_args(uint32_t instr, struct machine_state *mach) {
     o2 = (*shift_ptr[shift]) (mach->registers[reg], val, mach);
   }
 
-  uint32_t *ret = (uint32_t*) malloc(4* sizeof(int32_t));
-  uint32_t arr[4] = {rn, o2, rd, flagS};
-  printf("%i, rd LLLLLLLLLLLLLLLLLLL\n", arr[2]);
-  ret = &arr[0];
-
-  return ret;
+  pip->decoded_args = (uint32_t*) malloc(4* sizeof(int32_t));
+  *(pip->decoded_args) = rn;
+  *(pip->decoded_args + 1) = o2;
+  *(pip->decoded_args + 2) = rd;
+  *(pip->decoded_args + 3) = flagS;
+  printf("%i, dest register as about to be returned\n", pip->decoded_args[2]);
 }
 
 
@@ -233,8 +235,8 @@ void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state
   op_ptrs[10] = &cmp;
   op_ptrs[12] = &orr;
   op_ptrs[13] = &mov;
-
-  pip->decoded_args = process_args(instr, mach);
+  
+  process_args(instr, pip, mach);
   pip->decoded = op_ptrs[extract_bits(instr, 21, 4)];
   printf("%u passed dest reg\n", pip->decoded_args[2]);
 }

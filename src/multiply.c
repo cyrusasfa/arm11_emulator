@@ -9,15 +9,19 @@
 #include "machine.h"
 #include "multiply.h"
 
-uint32_t* get_args(int rd, int rn, int rs, int rm, struct machine_state *mach) {
-  uint32_t *ret = malloc (4 * sizeof(uint32_t));
-  uint32_t arr[4] 
-    = {mach->registers[rm], mach->registers[rs], mach->registers[rn], rd};
-  ret = &arr[0];
-  return ret;
+void get_args(struct pipeline *pip, int rd, int rn, int rs, int rm, struct machine_state *mach) {
+  pip->decoded_args = malloc (4 * sizeof(uint32_t));
+  *(pip->decoded_args) = mach->registers[rm];
+  *(pip->decoded_args + 1) = mach->registers[rs];
+  *(pip->decoded_args + 2) = mach->registers[rn];
+  *(pip->decoded_args + 3) = rd; 
 }
 
 void multiply(uint32_t *args, struct machine_state *mach) {
+  printf("MUL : %i args[0]\n", args[0]);
+  printf("MUL : %i args[1]\n", args[1]);
+  printf("MUL : %i args[2]\n", args[2]);
+  printf("MUL : %i args[3]\n", args[3]);
   mach->registers[args[3]] = args[0] * args[1];  
 }
 
@@ -39,7 +43,7 @@ void decode_multiply(uint32_t instr, struct pipeline *pip,
   mult_ptr[1] = &multiply_acc;
 
   pip->decoded = mult_ptr[bitA];
-  pip->decoded_args = get_args(Rd, Rn, Rs, Rm, mach);
+  get_args(pip, Rd, Rn, Rs, Rm, mach);
   
   //Setting the flags
   if (bitS == 1) {

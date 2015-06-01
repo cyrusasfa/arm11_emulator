@@ -86,31 +86,25 @@ int main(int argc, char **argv) {
   
   //Initializing the pipeline 
   //pip_ptr->decoded_args = (uint32_t*) malloc(6 * sizeof(uint32_t));
-  //pip_ptr->decoded_args = 0;
+  //pip_ptr->decoded_args = &dummy[0];
   pip_ptr->fetched = (uint32_t*) malloc(sizeof(uint32_t));
   pip_ptr->decoded = &do_nothing;
   pip_ptr->halt = 0;
   int cycle = 1;
-  do {
+  while(pip_ptr->halt == 0) {
     printf("Block here %i \n", cycle);
-    if (cycle == 3) {
-      printf("%u, args[2]\n", pip_ptr->decoded_args[2]);
-    }
     pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr);
     decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
-    if(cycle == 2) {
-      printf("%u, before fetch args[2]\n", pip_ptr->decoded_args[2]);
-    }
     fetch(pc, pip_ptr, mach_ptr);
     printf("%u fetched\n", *(pip_ptr->fetched));
-    if(cycle == 2) {
-      printf("%u, after fetched args[2]\n", pip_ptr->decoded_args[2]);
-    }
     pc += 4;
     cycle ++;
     output_machine_state(mach_ptr);
-  } while (pip_ptr->halt == 0); 
+  } 
   
+  output_machine_state(mach_ptr);
+  
+  free(mach_ptr);
   free(mach_ptr->memory);
   free(mach_ptr->registers);
   if (pip_ptr->decoded_args) {
@@ -118,8 +112,5 @@ int main(int argc, char **argv) {
   }
   free(pip_ptr->fetched);
   free(pip_ptr);
-  free(mach_ptr);
-  output_machine_state(mach_ptr);
-
   return EXIT_SUCCESS;
 }

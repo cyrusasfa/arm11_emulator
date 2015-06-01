@@ -2,7 +2,7 @@
 #define MULTIPLY_H
 #include "machine.h"
 
-uint32_t* get_args(int rd, int rn, int rs, int rm, struct machine_state *mach);
+void get_args(struct pipeline *pip, int rd, int rn, int rs, int rm, struct machine_state *mach);
 
 void multiply(uint32_t *args, struct machine_state *mach);
 
