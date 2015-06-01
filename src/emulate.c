@@ -40,12 +40,12 @@ void load_memory(const char *file_name, struct machine_state *machine) {
 void output_machine_state(struct machine_state *Machine) {
   printf("Registers:\n");
   for(int i=0; i<13; i++) {
-    printf("$%-3d: %10d (%0#10x)\n", i, 
+    printf("$%-3d: %10d (0x%08x)\n", i, 
       Machine->registers[i], Machine->registers[i]);
   }
   
-  printf("PC  : %10d (%0#10x)\n", Machine->registers[15], Machine->registers[15]);
-  printf("CPSR: %10d (%0#10x)\n", Machine->registers[16], Machine->registers[16]);
+  printf("PC  : %10d (0x%08x)\n", Machine->registers[15], Machine->registers[15]);
+  printf("CPSR: %10d (0x%08x)\n", Machine->registers[16], Machine->registers[16]);
 
   printf("Non-zero memory:\n");
 
@@ -58,7 +58,7 @@ void output_machine_state(struct machine_state *Machine) {
     }
     fetched += Machine->memory[i+j];
     if (fetched != 0) { 
-      printf("%0#10x: %0#10x\n", i, fetched);
+      printf("0x%08x: 0x%08x\n", i, fetched);
     }
   }
 }
