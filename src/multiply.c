@@ -18,10 +18,6 @@ void get_args(struct pipeline *pip, int rd, int rn, int rs, int rm, struct machi
 }
 
 void multiply(uint32_t *args, struct machine_state *mach) {
-  printf("MUL : %i args[0]\n", args[0]);
-  printf("MUL : %i args[1]\n", args[1]);
-  printf("MUL : %i args[2]\n", args[2]);
-  printf("MUL : %i args[3]\n", args[3]);
   mach->registers[args[3]] = args[0] * args[1];  
 }
 

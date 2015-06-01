@@ -92,11 +92,9 @@ int main(int argc, char **argv) {
   pip_ptr->halt = 0;
   int cycle = 1;
   while(pip_ptr->halt == 0) {
-    printf("Block here %i \n", cycle);
     pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr);
     decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
     fetch(pc, pip_ptr, mach_ptr);
-    printf("%u fetched\n", *(pip_ptr->fetched));
     pc += 4;
     cycle ++;
     output_machine_state(mach_ptr);

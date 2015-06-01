@@ -122,10 +122,10 @@ void orr(uint32_t* args, struct machine_state *mach) {
 }
 
 void mov(uint32_t* args, struct machine_state *mach) {
-  printf("Got to the mov function to be executed\n");
-  printf("MOV : %i args[1]\n", args[1]);
-  printf("MOV : %i args[2]\n", args[2]);
-  printf("MOV : %i args[3]\n", args[3]);
+  //printf("Got to the mov function to be executed\n");
+  //printf("MOV : %i args[1]\n", args[1]);
+  //printf("MOV : %i args[2]\n", args[2]);
+  //printf("MOV : %i args[3]\n", args[3]);
   mach->registers[args[2]] = args[1];
   uint32_t res = mach->registers[args[2]];
   if(args[3] == 1) {
@@ -169,14 +169,14 @@ uint32_t asr(int reg, int shiftvalue, struct machine_state *mach) {
 
 uint32_t ror(int reg, int shiftvalue, struct machine_state *mach) {
   if (shiftvalue != 0) {
-    printf("ror : non zero shift\n");
+    //printf("ror : non zero shift\n");
     mach->shifter_carryout = read_bit(reg, shiftvalue-1);
     int firstYbits = reg << (32 - shiftvalue);
     int lastbits   = reg >> shiftvalue;
     return (firstYbits | lastbits);
   } else {
     uint32_t ret = reg;
-    printf("%i shift is 0 ror\n", ret);
+    //printf("%i shift is 0 ror\n", ret);
     return reg;
   }   
 }
@@ -196,7 +196,7 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
   shift_ptr[3] = ror;
 
   if (imm) {
-    printf("%i before ror", extract_bits(instr, 0, 4));
+    //printf("%i before ror", extract_bits(instr, 0, 4));
     o2 = ror(extract_bits(instr,0, 8), 2 * extract_bits(instr, 8, 4), mach);
   } 
   if (!imm && read_bit(instr,4)) {
@@ -217,7 +217,7 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
   *(pip->decoded_args + 1) = o2;
   *(pip->decoded_args + 2) = rd;
   *(pip->decoded_args + 3) = flagS;
-  printf("%i, dest register as about to be returned\n", pip->decoded_args[2]);
+  //printf("%i, dest register as about to be returned\n", pip->decoded_args[2]);
 }
 
 
@@ -238,7 +238,7 @@ void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state
   
   process_args(instr, pip, mach);
   pip->decoded = op_ptrs[extract_bits(instr, 21, 4)];
-  printf("%u passed dest reg\n", pip->decoded_args[2]);
+  //printf("%u passed dest reg\n", pip->decoded_args[2]);
 }
 
 

@@ -25,35 +25,30 @@ void fetch(uint32_t pc, struct pipeline *pipeline, struct machine_state *mach) {
 void decode(int cycle, uint32_t *instr, struct pipeline *pipeline,
                struct machine_state *mach) {
   if (!instr || cycle == 1) {
-    printf("no pointer\n");
+    //printf("no pointer\n");
     return;
   }
 
 
   if (*instr == 0) {
-      printf("halt\n");
+      //printf("halt\n");
       pipeline->halt = 1;
       return;
   }
 
   unsigned int cond_code = extract_bits(*instr, 28,4);
   if (!(condition(cond_code, *mach))) {
-    printf("no cond\n");
     return;
   }
 
   if (read_bit(*instr, 27)) {
-    printf("branch\n");
     decode_branch(*instr, pipeline, mach);
   } else if (read_bit(*instr,26)) {
-    printf("got trans\n");
     decode_data_trans(*instr, pipeline, mach);
   } else if (!(read_bit(*instr, 25)) && read_bit(*instr, 4) && read_bit(*instr,
             7)) {
-    printf("mul\n");
     decode_multiply(*instr, pipeline, mach);
   } else {
-    printf("proc\n");
     decode_data_proc(*instr, pipeline, mach);
   }
 }
