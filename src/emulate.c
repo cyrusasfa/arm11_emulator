@@ -64,7 +64,7 @@ void output_machine_state(struct machine_state *Machine) {
 }
 
 //NULL function so to say
-void do_nothing (int32_t *args, struct machine_state *mach) {
+void do_nothing (uint32_t *args, struct machine_state *mach) {
   return;
 }
 
@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
   struct machine_state *mach_ptr = malloc(sizeof(struct machine_state));
   
   //Set all memory locations and registers to 0
-  mach_ptr->registers = (int32_t*) malloc(NUM_REGS * sizeof(int32_t));  
-  mach_ptr->memory = (int8_t*) malloc(MEM_SIZE * sizeof(int8_t));
+  mach_ptr->registers = (uint32_t*) malloc(NUM_REGS * sizeof(uint32_t));  
+  mach_ptr->memory = (uint8_t*) malloc(MEM_SIZE * sizeof(uint8_t));
   
   initialize_memories(mach_ptr);
   
@@ -85,26 +85,37 @@ int main(int argc, char **argv) {
   load_memory(file_name, mach_ptr);
   
   //Initializing the pipeline 
-  pip_ptr->decoded_args = (int32_t*) malloc(sizeof(int32_t*));
-  pip_ptr->decoded_args = 0;
+  //pip_ptr->decoded_args = (uint32_t*) malloc(6 * sizeof(uint32_t));
+  //pip_ptr->decoded_args = 0;
+  pip_ptr->fetched = (uint32_t*) malloc(sizeof(uint32_t));
   pip_ptr->decoded = &do_nothing;
-  pip_ptr->fetched = (int32_t*) malloc(sizeof(int32_t *));
-  pip_ptr->fetched = 0;
   pip_ptr->halt = 0;
-  int cycle = 0;
-  while (pip_ptr->halt == 0) {
+  int cycle = 1;
+  do {
     printf("Block here %i \n", cycle);
+    if (cycle == 3) {
+      printf("%u, args[2]\n", pip_ptr->decoded_args[2]);
+    }
     pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr);
-    decode(pip_ptr->fetched, pip_ptr, mach_ptr); 
+    decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
+    if(cycle == 2) {
+      printf("%u, before fetch args[2]\n", pip_ptr->decoded_args[2]);
+    }
     fetch(pc, pip_ptr, mach_ptr);
+    printf("%u fetched\n", *(pip_ptr->fetched));
+    if(cycle == 2) {
+      printf("%u, after fetched args[2]\n", pip_ptr->decoded_args[2]);
+    }
     pc += 4;
     cycle ++;
-    printf("cycle : %i\n", cycle);
-  }
-
+    output_machine_state(mach_ptr);
+  } while (pip_ptr->halt == 0); 
+  
   free(mach_ptr->memory);
   free(mach_ptr->registers);
-  free(pip_ptr->decoded_args);
+  if (pip_ptr->decoded_args) {
+    free(pip_ptr->decoded_args);
+  }
   free(pip_ptr->fetched);
   free(pip_ptr);
   free(mach_ptr);

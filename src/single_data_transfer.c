@@ -10,8 +10,8 @@
 #include "machine.h"
 #include "single_data_transfer.h"
 
-int32_t* get_address(int32_t instr, struct machine_state *mach) {
-  int32_t *ret = (int32_t*) malloc(3 * sizeof(int32_t));
+uint32_t* get_address(uint32_t instr, struct machine_state *mach) {
+  uint32_t *ret = (uint32_t*) malloc(3 * sizeof(int32_t));
   
   struct trans_instr instruction;
   
@@ -26,7 +26,7 @@ int32_t* get_address(int32_t instr, struct machine_state *mach) {
   int32_t address;
   
   if (instruction.immediate) {
-    int32_t processed_offset = process_args(instr, mach)[1];
+    uint32_t processed_offset = process_args(instr, mach)[1];
     address 
       = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
         processed_offset;
@@ -34,19 +34,19 @@ int32_t* get_address(int32_t instr, struct machine_state *mach) {
     address = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
               instruction.offset;
   }
-  int32_t arg2;
+  uint32_t arg2;
   if (instruction.pre ==1) {
     arg2 = address; 
   } else {
     arg2 = mach->registers[instruction.rn]; 
     mach->registers[instruction.rn] = address; 
   }
-  int32_t arr[3] = {instruction.rd, arg2, instruction.load};
+  uint32_t arr[3] = {instruction.rd, arg2, instruction.load};
   ret = &arr[0];
   return ret;
 }
 
-void transfer (int32_t* args, struct machine_state *mach) {
+void transfer (uint32_t* args, struct machine_state *mach) {
   if (args[2] == 1) {
     mach->registers[args[0]] = mach->memory[args[1]];
   } else {
@@ -55,7 +55,7 @@ void transfer (int32_t* args, struct machine_state *mach) {
 }
 
 
-void decode_data_trans(int32_t instr, struct pipeline *pip, struct 
+void decode_data_trans(uint32_t instr, struct pipeline *pip, struct 
   machine_state *mach) {
 
   pip->decoded_args = get_address(instr,  mach);

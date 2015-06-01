@@ -15,7 +15,7 @@ bool read_bit(int number, int index) {
 // start is the start bit from where we extract the bits
 // length is how many bits we want to extract
 // instruction is from where we want to extract
-int extract_bits(int number, int start, int length) {       
+unsigned int extract_bits(int number, int start, int length) {       
   if (start > 31 || start < 0) {                           
     printf("%s\n", "take int error");                   
     printf("start = %d, length = %d\n", start, length);
@@ -27,10 +27,10 @@ int extract_bits(int number, int start, int length) {
   }
 }
 
-int32_t set_bit(int32_t number, int bit) {
+uint32_t set_bit(int32_t number, int bit) {
   return number |= (1 << bit);
 }
 
-int32_t clear_bit(int32_t number, int bit) {
+uint32_t clear_bit(int32_t number, int bit) {
   return number &= ~(1 << bit);
 }

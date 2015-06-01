@@ -9,23 +9,23 @@
 #include "machine.h"
 #include "multiply.h"
 
-int32_t* get_args(int rd, int rn, int rs, int rm, struct machine_state *mach) {
-  int32_t *ret = malloc (4 * sizeof(int32_t));
-  int32_t arr[4] 
+uint32_t* get_args(int rd, int rn, int rs, int rm, struct machine_state *mach) {
+  uint32_t *ret = malloc (4 * sizeof(uint32_t));
+  uint32_t arr[4] 
     = {mach->registers[rm], mach->registers[rs], mach->registers[rn], rd};
   ret = &arr[0];
   return ret;
 }
 
-void multiply(int32_t *args, struct machine_state *mach) {
+void multiply(uint32_t *args, struct machine_state *mach) {
   mach->registers[args[3]] = args[0] * args[1];  
 }
 
-void multiply_acc(int32_t *args, struct machine_state *mach) {
+void multiply_acc(uint32_t *args, struct machine_state *mach) {
   mach->registers[args[3]] = args[0] * args[1] + args[2];
 }
 
-void decode_multiply(int32_t instr, struct pipeline *pip, 
+void decode_multiply(uint32_t instr, struct pipeline *pip, 
                       struct machine_state *mach) {
   const bool bitA = read_bit(instr, 21);
   const bool bitS = read_bit(instr, 20);
@@ -34,7 +34,7 @@ void decode_multiply(int32_t instr, struct pipeline *pip,
   const int Rs     = extract_bits(instr, 8, 4);
   const int Rm     = extract_bits(instr, 0, 4);
   
-  void (*mult_ptr[2]) (int32_t*, struct machine_state*);
+  void (*mult_ptr[2]) (uint32_t*, struct machine_state*);
   mult_ptr[0] = &multiply;
   mult_ptr[1] = &multiply_acc;
 
