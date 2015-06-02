@@ -15,25 +15,25 @@ uint32_t asr(int reg, int shiftvalue, struct machine_state *mach);
 
 uint32_t ror(int reg, int shiftvalue, struct machine_state *mach);
 
-void and(uint32_t* args, struct machine_state *mach);
+void and(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void eor(uint32_t* args, struct machine_state *mach);
+void eor(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void sub(uint32_t* args, struct machine_state *mach);
+void sub(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void rsb(uint32_t* args, struct machine_state *mach);
+void rsb(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void add(uint32_t* args, struct machine_state *mach);
+void add(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void tst(uint32_t* args, struct machine_state *mach);
+void tst(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void teq(uint32_t* args, struct machine_state *mach);
+void teq(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void cmp(uint32_t* args, struct machine_state *mach);
+void cmp(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void orr(uint32_t* args, struct machine_state *mach);
+void orr(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
-void mov(uint32_t* args, struct machine_state *mach);
+void mov(uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
 void set_flags_logic(struct machine_state *mach, uint32_t res);
 

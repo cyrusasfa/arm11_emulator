@@ -49,7 +49,7 @@ void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
   }
 }
 
-void and(uint32_t* args, struct machine_state *mach) {
+void and(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   // printf("ARG : 0 %i\n", args[0]);
   // printf("ARG : 1 %i\n", args[1]);
   // printf("ARG : 2 %i\n", args[2]);
@@ -61,7 +61,7 @@ void and(uint32_t* args, struct machine_state *mach) {
   }
 }
 
-void eor(uint32_t* args, struct machine_state *mach) {
+void eor(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t res = mach->registers[args[0]] ^ args[1];
   mach->registers[args[2]] = res;
   if(args[3]) {
@@ -69,21 +69,21 @@ void eor(uint32_t* args, struct machine_state *mach) {
   }
 }
 
-void sub(uint32_t* args, struct machine_state *mach) {
+void sub(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   args[1] = ~args[1] + 1;
-  add(args, mach);
+  add(args, mach, pip);
 }
 
-void rsb(uint32_t* args, struct machine_state *mach) {
+void rsb(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t tmp = args[1];
   uint32_t tmp0 = mach->registers[args[0]];
   args[1] = tmp0;
   mach->registers[args[0]] = tmp;
-  sub(args, mach);
+  sub(args, mach, pip);
   mach->registers[args[0]] = tmp0;
 }
 
-void add(uint32_t* args, struct machine_state *mach) {
+void add(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   // printf("ARG : 0 %i\n", args[0]);
   // printf("ARG : 1 %i\n", args[1]);
   // printf("ARG : 2 %i\n", args[2]);
@@ -99,21 +99,21 @@ void add(uint32_t* args, struct machine_state *mach) {
   }
 }
 
-void tst(uint32_t* args, struct machine_state *mach) {
+void tst(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t res = mach->registers[args[0]] & args[1];
   if (args[3] == 1) {
     set_flags_logic(mach, res);
   }
 }
 
-void teq(uint32_t* args, struct machine_state *mach) {
+void teq(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t res = mach->registers[args[0]] ^ args[1];
   if(args[3] ==1) {
     set_flags_logic(mach ,res);
   }
 }
 
-void cmp(uint32_t* args, struct machine_state *mach) {
+void cmp(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t res = mach->registers[args[0]] - args[1];
   if (mach->registers[args[0]] > 0 && (-args[1]) > ((pow(2,31) - 1) - args[1])){
     mach->alu_carryout = true;
@@ -123,7 +123,7 @@ void cmp(uint32_t* args, struct machine_state *mach) {
   }
 }
 
-void orr(uint32_t* args, struct machine_state *mach) {
+void orr(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t res = mach -> registers[args[0]] | args[1];
   mach->registers[args[2]] = res;
   if(args[3] == 1) {
@@ -131,7 +131,7 @@ void orr(uint32_t* args, struct machine_state *mach) {
   }
 }
 
-void mov(uint32_t* args, struct machine_state *mach) {
+void mov(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   //printf("Got to the mov function to be executed\n");
   //printf("MOV : %i args[1]\n", args[1]);
   //printf("MOV : %i args[2]\n", args[2]);
@@ -233,7 +233,7 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
 
 void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state
                         *mach) {
-  void (*op_ptrs[14]) (uint32_t* args, struct machine_state *mach);
+  void (*op_ptrs[14]) (uint32_t* args, struct machine_state *mach, struct pipeline*);
 
   op_ptrs[0]  = &and;
   op_ptrs[1]  = &eor;

@@ -9,7 +9,7 @@ struct machine_state {
 };
 
 struct pipeline {
-  void (*decoded) (uint32_t *args, struct machine_state *mach);
+  void (*decoded) (uint32_t *args, struct machine_state *mach, struct pipeline *pip);
   uint32_t *decoded_args;
   uint32_t *fetched; 
   unsigned int halt : 1;

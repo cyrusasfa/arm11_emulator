@@ -13,7 +13,7 @@ struct trans_instr {
 
 uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state *mach);
 
-void transfer (uint32_t* args, struct machine_state *mach);
+void transfer (uint32_t* args, struct machine_state *mach, struct pipeline *pip);
 
 void decode_data_trans(uint32_t instr, struct pipeline *pip, 
     struct machine_state *mach);

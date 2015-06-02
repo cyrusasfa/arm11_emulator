@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include "utility.h"
 #include "machine.h"
 #include "execution_cycle.h"
 
@@ -63,10 +64,6 @@ void output_machine_state(struct machine_state *Machine) {
   }
 }
 
-//NULL function so to say
-void do_nothing (uint32_t *args, struct machine_state *mach) {
-  return;
-}
 
 int main(int argc, char **argv) {
   assert(argc == 2);
@@ -87,14 +84,18 @@ int main(int argc, char **argv) {
   //Initializing the pipeline 
   //pip_ptr->decoded_args = (uint32_t*) malloc(6 * sizeof(uint32_t));
   //pip_ptr->decoded_args = &dummy[0];
-  pip_ptr->fetched = (uint32_t*) malloc(sizeof(uint32_t));
+  //pip_ptr->fetched = (uint32_t*) malloc(sizeof(uint32_t));
   pip_ptr->decoded = &do_nothing;
   pip_ptr->halt = 0;
   int cycle = 1;
   while(pip_ptr->halt == 0) {
-    pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr);
+    //printf("BLOCK HERE : %i\n", cycle);
+    pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr, pip_ptr);
+    //printf("Executed dummy function\n");
     decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
+    //printf("Did the decode yeah\n");
     fetch(pc, pip_ptr, mach_ptr);
+    //printf("Did the fetch \n");
     pc += 4;
     cycle ++;
     //output_machine_state(mach_ptr);

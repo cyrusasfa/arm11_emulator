@@ -17,11 +17,11 @@ void get_args(struct pipeline *pip, int rd, int rn, int rs, int rm, struct machi
   *(pip->decoded_args + 3) = rd; 
 }
 
-void multiply(uint32_t *args, struct machine_state *mach) {
+void multiply(uint32_t *args, struct machine_state *mach, struct pipeline *pip) {
   mach->registers[args[3]] = args[0] * args[1];  
 }
 
-void multiply_acc(uint32_t *args, struct machine_state *mach) {
+void multiply_acc(uint32_t *args, struct machine_state *mach, struct pipeline *pip) {
   mach->registers[args[3]] = args[0] * args[1] + args[2];
 }
 
@@ -34,7 +34,7 @@ void decode_multiply(uint32_t instr, struct pipeline *pip,
   const int Rs     = extract_bits(instr, 8, 4);
   const int Rm     = extract_bits(instr, 0, 4);
   
-  void (*mult_ptr[2]) (uint32_t*, struct machine_state*);
+  void (*mult_ptr[2]) (uint32_t*, struct machine_state*, struct pipeline*);
   mult_ptr[0] = &multiply;
   mult_ptr[1] = &multiply_acc;
 

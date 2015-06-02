@@ -34,3 +34,8 @@ uint32_t set_bit(int32_t number, int bit) {
 uint32_t clear_bit(int32_t number, int bit) {
   return number &= ~(1 << bit);
 }
+
+//NULL function so to say
+void do_nothing (uint32_t *args, struct machine_state *mach, struct pipeline *pip) {
+  return;
+}

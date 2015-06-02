@@ -47,7 +47,7 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
   return ret;
 }
 
-void transfer (uint32_t* args, struct machine_state *mach) {
+void transfer (uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   if (args[2] == 1) {
     mach->registers[args[0]] = mach->memory[args[1]];
   } else {

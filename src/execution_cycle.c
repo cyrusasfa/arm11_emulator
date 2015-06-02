@@ -19,6 +19,7 @@ void fetch(uint32_t pc, struct pipeline *pipeline, struct machine_state *mach) {
     instr <<= 8;
   }
   instr += mach->memory[pc];
+  pipeline->fetched = (uint32_t*) malloc(sizeof(uint32_t));
   *(pipeline->fetched) = instr;
 }
 
@@ -42,6 +43,7 @@ void decode(int cycle, uint32_t *instr, struct pipeline *pipeline,
   }
 
   if (read_bit(*instr, 27)) {
+    //printf("Got to just before the decode branch");
     decode_branch(*instr, pipeline, mach);
   } else if (read_bit(*instr,26)) {
     decode_data_trans(*instr, pipeline, mach);
