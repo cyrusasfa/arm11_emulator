@@ -50,7 +50,11 @@ void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
 }
 
 void and(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] & args[1];
+  printf("ARG : 0 %i\n", args[0]);
+  printf("ARG : 1 %i\n", args[1]);
+  printf("ARG : 2 %i\n", args[2]);
+  printf("ARG : 3 %i\n", args[3]);
+  uint32_t res = mach->registers[args[0]] & args[1];
   mach->registers[args[2]] = res;
   if(args[3] == 1) {
     set_flags_logic(mach, res);

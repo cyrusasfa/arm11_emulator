@@ -10,7 +10,7 @@
 #include "machine.h"
 #include "single_data_transfer.h"
 
-uint32_t* get_address(uint32_t instr, struct machine_state *mach) {
+uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state *mach) {
   uint32_t *ret = (uint32_t*) malloc(3 * sizeof(int32_t));
   
   struct trans_instr instruction;
@@ -26,7 +26,8 @@ uint32_t* get_address(uint32_t instr, struct machine_state *mach) {
   int32_t address;
   
   if (instruction.immediate) {
-    uint32_t processed_offset = process_args(instr, mach)[1];
+    process_args(instr, pip, mach);
+    uint32_t processed_offset = *(pip->decoded_args + 1);
     address 
       = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
         processed_offset;
@@ -58,7 +59,7 @@ void transfer (uint32_t* args, struct machine_state *mach) {
 void decode_data_trans(uint32_t instr, struct pipeline *pip, struct 
   machine_state *mach) {
 
-  pip->decoded_args = get_address(instr,  mach);
+  pip->decoded_args = get_address(instr, pip,  mach);
   pip->decoded = &transfer;
 
 }
