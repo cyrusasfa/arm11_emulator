@@ -50,10 +50,10 @@ void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
 }
 
 void and(uint32_t* args, struct machine_state *mach) {
-  printf("ARG : 0 %i\n", args[0]);
-  printf("ARG : 1 %i\n", args[1]);
-  printf("ARG : 2 %i\n", args[2]);
-  printf("ARG : 3 %i\n", args[3]);
+  // printf("ARG : 0 %i\n", args[0]);
+  // printf("ARG : 1 %i\n", args[1]);
+  // printf("ARG : 2 %i\n", args[2]);
+  // printf("ARG : 3 %i\n", args[3]);
   uint32_t res = mach->registers[args[0]] & args[1];
   mach->registers[args[2]] = res;
   if(args[3] == 1) {
@@ -62,7 +62,7 @@ void and(uint32_t* args, struct machine_state *mach) {
 }
 
 void eor(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] ^ args[1];
+  uint32_t res = mach->registers[args[0]] ^ args[1];
   mach->registers[args[2]] = res;
   if(args[3]) {
     set_flags_logic(mach, res);
@@ -70,21 +70,27 @@ void eor(uint32_t* args, struct machine_state *mach) {
 }
 
 void sub(uint32_t* args, struct machine_state *mach) {
-  args[1] = -args[1];
+  args[1] = ~args[1] + 1;
   add(args, mach);
 }
 
 void rsb(uint32_t* args, struct machine_state *mach) {
   uint32_t tmp = args[1];
-  args[1] = args[0];
-  args[0] = tmp;
+  uint32_t tmp0 = mach->registers[args[0]];
+  args[1] = tmp0;
+  mach->registers[args[0]] = tmp;
   sub(args, mach);
+  mach->registers[args[0]] = tmp0;
 }
 
 void add(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] + args[1];
+  // printf("ARG : 0 %i\n", args[0]);
+  // printf("ARG : 1 %i\n", args[1]);
+  // printf("ARG : 2 %i\n", args[2]);
+  // printf("ARG : 3 %i\n", args[3]);
+  uint32_t res = mach->registers[args[0]] + args[1];
   //Overflow check
-  if(args[0] > 0 && args[1] > ((pow(2,31) - 1) - args[0])) {
+  if(mach->registers[args[0]] > 0 && args[1] > ((pow(2,31) - 1) - mach->registers[args[0]])) {
     mach->alu_carryout = true; 
   }
   mach->registers[args[2]] = res;
@@ -94,22 +100,22 @@ void add(uint32_t* args, struct machine_state *mach) {
 }
 
 void tst(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] & args[1];
+  uint32_t res = mach->registers[args[0]] & args[1];
   if (args[3] == 1) {
     set_flags_logic(mach, res);
   }
 }
 
 void teq(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] ^ args[1];
+  uint32_t res = mach->registers[args[0]] ^ args[1];
   if(args[3] ==1) {
     set_flags_logic(mach ,res);
   }
 }
 
 void cmp(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] - args[1];
-  if (args[0] > 0 && (-args[1]) > ((pow(2,31) - 1) - args[1])){
+  uint32_t res = mach->registers[args[0]] - args[1];
+  if (mach->registers[args[0]] > 0 && (-args[1]) > ((pow(2,31) - 1) - args[1])){
     mach->alu_carryout = true;
   }
   if(args[3] == 1) {
@@ -118,7 +124,7 @@ void cmp(uint32_t* args, struct machine_state *mach) {
 }
 
 void orr(uint32_t* args, struct machine_state *mach) {
-  uint32_t res = args[0] | args[1];
+  uint32_t res = mach -> registers[args[0]] | args[1];
   mach->registers[args[2]] = res;
   if(args[3] == 1) {
     set_flags_logic(mach, res);
@@ -229,13 +235,13 @@ void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state
                         *mach) {
   void (*op_ptrs[14]) (uint32_t* args, struct machine_state *mach);
 
-  op_ptrs[0] = &and;
-  op_ptrs[1] = &eor;
-  op_ptrs[2] = &sub;
-  op_ptrs[3] = &rsb;
-  op_ptrs[4] = &add;
-  op_ptrs[8] = &tst;
-  op_ptrs[9] = &teq;
+  op_ptrs[0]  = &and;
+  op_ptrs[1]  = &eor;
+  op_ptrs[2]  = &sub;
+  op_ptrs[3]  = &rsb;
+  op_ptrs[4]  = &add;
+  op_ptrs[8]  = &tst;
+  op_ptrs[9]  = &teq;
   op_ptrs[10] = &cmp;
   op_ptrs[12] = &orr;
   op_ptrs[13] = &mov;

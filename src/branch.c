@@ -16,13 +16,13 @@ uint32_t* get_arg(unsigned int offset) {
 }
 
 void branch(uint32_t *arg, struct machine_state *mach) {
-  mach->registers[15] += arg[0];
+  mach->registers[15] += (mach -> registers[arg[0]]);
 }
 
 void decode_branch(uint32_t instr, struct pipeline *pip, struct machine_state
                     *mach) {
   unsigned int offset = extract_bits(instr, 0, 24);
-  offset = offset << 2;
+  offset <<= 2;
   uint32_t move = offset;
   
   pip->decoded_args = get_arg(move);
