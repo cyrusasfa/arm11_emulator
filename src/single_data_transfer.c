@@ -57,7 +57,10 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
 }
 
 void load_word(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  uint32_t res = 0;
+ if (args[1] > 64 *1024) {
+    printf("Error: Out of bounds memory access at address %#10x\n", args[1]);
+ }
+ uint32_t res = 0;
   for(int i=3; i > 0; i--) {
     res += mach->memory[args[1] + i];
     res <<= 8;
