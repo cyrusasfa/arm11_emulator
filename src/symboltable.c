@@ -3,32 +3,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "symboltable.h"
 
-#define INIT_SPACE 50
-#define NOT_FOUND -1
-
-typedef struct key_value_map {
-  char **keys; // label references
-  int *values; // addresses 
-  int size;
-  int space;
-} Map; 
-// can refer to struct as SymbolTable rather than struct SymbolTable
-
-// ADT procedures
-void init(Map *map);
-int look_up(Map *map, char *key);
-void insert(Map *map, char *key, int value);
-void double_size(Map *map);
-
-void init(Map *map) {
+void init_table(Map *map) {
   map->size = 0;
   map->space = INIT_SPACE;
-  map->keys = (char **)malloc(sizeof(char) * max_size);
-  map->values = (int *)malloc(sizeof(int) * max_size);
+  map->keys = (char **)malloc(sizeof(char) * map->space);
+  map->values = (int *)malloc(sizeof(int) * map->space);
 }
 
-void free(Map *map) {
+void free_table(Map *map) {
   // reset map
   free(map->keys);
   free(map->values);
@@ -38,7 +22,7 @@ void free(Map *map) {
 int look_up(Map *map, char *key) {
   // return 0 if not found
   int pos = -1;
-  for (int i = 0, i < map->size, i++) {
+  for (int i = 0; i < map->size; i++) {
   	if (strcmp(map->keys, key) == 0) {
   	  pos = i;
   	}
@@ -64,7 +48,6 @@ void double_space(Map *map) {
   map->keys = (char **)realloc(map->keys, sizeof(char) * map->space);
   map->values = (int *)realloc(map->values, sizeof(int) * map->space);
 }
-
 
 // typedef struct node {
 //   char *key;
