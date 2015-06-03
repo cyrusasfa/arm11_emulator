@@ -12,41 +12,45 @@
 
 void set_flags_logic(struct machine_state *mach, uint32_t res) {
   if(mach->shifter_carryout) {     
-    set_bit(mach->registers[16], 29);//Set C flag
+    mach->registers[16] = set_bit(mach->registers[16], 29);//Set C flag
   } else {
-    clear_bit(mach->registers[16], 29);//Clear C flag
+    mach->registers[16] = clear_bit(mach->registers[16], 29);//Clear C flag
   }
 
   if(res == 0) {
-    set_bit(mach->registers[16], 30);//Set Z flag
+    mach->registers[16] = set_bit(mach->registers[16], 30);//Set Z flag
   } else {
-    clear_bit(mach->registers[16], 30);//Set Z flag
+    mach->registers[16] = clear_bit(mach->registers[16], 30);//Set Z flag
   }
 
   if (read_bit(res, 31)) {
-    set_bit(mach->registers[16], 31);//Set N flag
+    mach->registers[16] = set_bit(mach->registers[16], 31);//Set N flag
   } else {
-    clear_bit(mach->registers[16], 31);//Clear N flag
+    mach->registers[16] = clear_bit(mach->registers[16], 31);//Clear N flag
   }
 }
 
 void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
+  //printf("RES is : %i\n", res);
+  //printf("RES bit 31 = %i\n", read_bit(res, 31));
   if(mach->alu_carryout) {
-    set_bit(mach->registers[16], 29);//Set C flag
+    mach->registers[16] = set_bit(mach->registers[16], 29);//Set C flag
   } else {
-    clear_bit(mach->registers[16], 29);//Clear C flag
+    mach->registers[16] = clear_bit(mach->registers[16], 29);//Clear C flag
   }
   if(res == 0) {
-    set_bit(mach->registers[16], 30);//Set Z flag
+    mach->registers[16] = set_bit(mach->registers[16], 30);//Set Z flag
+    //printf("The Z flag : %i\n", read_bit(mach->registers[16], 30));
   } else {
-    clear_bit(mach->registers[16], 30);//Set Z flag
+    mach->registers[16] = clear_bit(mach->registers[16], 30);//Set Z flag
   }
 
   if (read_bit(res, 31)) {
-    set_bit(mach->registers[16], 31);//Set N flag
+    mach->registers[16] = set_bit(mach->registers[16], 31);//Set N flag
   } else {
-    clear_bit(mach->registers[16], 31);//Clear N flag
+    mach->registers[16] = clear_bit(mach->registers[16], 31);//Clear N flag
   }
+  //printf("The CPSR : %i\n", mach->registers[16]);
 }
 
 void and(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
@@ -114,8 +118,11 @@ void teq(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 }
 
 void cmp(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
+  //printf("ARGs[3] = %i\n", args[3]);
   uint32_t res = mach->registers[args[0]] - args[1];
-  if (mach->registers[args[0]] > 0 && (-args[1]) > ((pow(2,31) - 1) - args[1])){
+  //printf("The RESULT : %i\n", res);
+  //if (mach->registers[args[0]] > 0 && args[1] > ((pow(2,31) - 1) - args[1])){
+  if(args[0] >= args[1]) {
     mach->alu_carryout = true;
   }
   if(args[3] == 1) {

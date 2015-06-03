@@ -11,7 +11,7 @@
 #include "single_data_transfer.h"
 
 uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state *mach) {
-  uint32_t *ret = (uint32_t*) malloc(3 * sizeof(int32_t));
+  uint32_t *ret = (uint32_t*) malloc(2 * sizeof(int32_t));
   
   struct trans_instr instruction;
   
@@ -23,8 +23,8 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
   instruction.rd = extract_bits(instr, 12, 4);
   instruction.offset = extract_bits(instr, 0, 12);
  
-  int32_t address;
-  
+  uint32_t address;
+  printf ("Unprocessed offset = %i", instruction.offset); 
   if (instruction.immediate) {
     process_args(instr, pip, mach);
     uint32_t processed_offset = *(pip->decoded_args + 1);
@@ -32,34 +32,55 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
       = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
         processed_offset;
   } else { 
+    printf("This branch");
     address = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
               instruction.offset;
+    printf("Address is : %i", address);
   }
   uint32_t arg2;
   if (instruction.pre ==1) {
-    arg2 = address; 
+    arg2 =  address; 
   } else {
     arg2 = mach->registers[instruction.rn]; 
     mach->registers[instruction.rn] = address; 
   }
-  uint32_t arr[3] = {instruction.rd, arg2, instruction.load};
-  ret = &arr[0];
+  //Taking the pipeline into account;
+  if (instruction.rn == 15) {
+    arg2 += 4;
+  }
+  int32_t arr[2] = {instruction.rd, arg2};
+  for (int i=0; i < 3; i++) {
+    *(ret + i) = arr[i];
+  }
+
   return ret;
 }
 
-void transfer (uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  if (args[2] == 1) {
-    mach->registers[args[0]] = mach->memory[args[1]];
-  } else {
-    mach->memory[args[1]] = mach->registers[args[0]];
+void load_word(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
+  uint32_t res = 0;
+  for(int i=3; i > 0; i--) {
+    res += mach->memory[args[1] + i];
+    res <<= 8;
+  }
+  res += mach->memory[args[1]];
+  mach->registers[args[0]] = res;
+}
+
+void store_word(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
+  uint32_t word = mach->registers[args[0]];
+  for(int i=3; i >= 0; i--) {
+    mach->memory[args[1]+i] = extract_bits(word, 8*i, 8);
   }
 }
 
 
 void decode_data_trans(uint32_t instr, struct pipeline *pip, struct 
   machine_state *mach) {
+  void (*load_ptr[2]) (uint32_t*, struct machine_state*, struct pipeline*);
+  load_ptr[0] = &store_word;
+  load_ptr[1] = &load_word;
 
   pip->decoded_args = get_address(instr, pip,  mach);
-  pip->decoded = &transfer;
+  pip->decoded = load_ptr[read_bit(instr, 20)];
 
 }
