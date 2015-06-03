@@ -5,29 +5,19 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+<<<<<<< HEAD
+=======
+#include "machine.h"
+#include "execution_cycle.h"
+>>>>>>> master
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
 #define REG_SIZE (32)
 
-#define r0 (registers[0])
-#define r1 (registers[1])
-#define r2 (registers[2])
-#define r3 (registers[3])
-#define r4 (registers[4])
-#define r5 (registers[5])
-#define r6 (registers[6])
-#define r7 (registers[7])
-#define r8 (registers[8])
-#define r9 (registers[9])
-#define r10 (registers[10])
-#define r11 (registers[11])
-#define r12 (registers[12])
-#define r13 (registers[13])
-#define r14 (registers[14])
-#define pc  (registers[15])
-#define cpsr (registers[16])
+#define pc  (mach_ptr->registers[15])
 
+<<<<<<< HEAD
 uint8_t *memory; //Array to represent the memory
 uint32_t registers[NUM_REGS]; // represents the registers
 bool carryout;
@@ -111,32 +101,43 @@ void initilize_memories() {
   for (int i = 0; i < MEM_SIZE; i++) {
     memory[i] = 0;
   }
-  //Set all memory locations to 0
+=======
+void initialize_memories(struct machine_state *machine) {
   
-  for (int i = 0; i < NUM_REGS; i++) {
-    registers[i] = 0; 
+>>>>>>> master
+  //Set all memory locations to 0
+  for(int i=0; i < MEM_SIZE; i++) {
+    machine->memory[i] = 0; 
   }
+
   //Set all registers to 0
+  for(int i=0; i < NUM_REGS; i++) {
+    machine->registers[i] = 0;
+  }
 }
 
+<<<<<<< HEAD
 int load_memory(const char *fileName) {
 
+=======
+void load_memory(const char *file_name, struct machine_state *machine) {
+>>>>>>> master
   FILE *program;
-  program = fopen(fileName, "rb");
+  program = fopen(file_name, "rb");
   
-  assert (program);
-  int ret = fread(memory, 1, MEM_SIZE, program);
+  assert(program);
+  fread(machine->memory, 1, MEM_SIZE, program);
 
   fclose(program);
-  return ret;
 }
 
-uint32_t fetch(int address) {
-  uint32_t ret = 0;
-  for(int i = 3; i > 0; --i) {
-    ret += memory[address+i];
-    ret = ret << 8;
+void output_machine_state(struct machine_state *Machine) {
+  printf("Registers:\n");
+  for(int i=0; i<13; i++) {
+    printf("$%-3d: %10d (0x%08x)\n", i, 
+      Machine->registers[i], Machine->registers[i]);
   }
+<<<<<<< HEAD
   return ret += memory[address];
 }
 
@@ -497,9 +498,15 @@ void single_data_transfer(uint32_t instruction) {
   int offset_strt = 0;
   int rn = extract_bits(instruction, rn_strt, 4);
   int rd = extract_bits(instruction, rd_strt, 4);
+=======
+  
+  printf("PC  : %10d (0x%08x)\n", Machine->registers[15], Machine->registers[15]);
+  printf("CPSR: %10d (0x%08x)\n", Machine->registers[16], Machine->registers[16]);
+>>>>>>> master
 
-  int offset;
+  printf("Non-zero memory:\n");
 
+<<<<<<< HEAD
   if (i) { // I = 1, offset is shifted reg
     printf("I = 1\n");
     int rm         = extract_bits(instruction, offset_strt, 4);
@@ -513,24 +520,20 @@ void single_data_transfer(uint32_t instruction) {
       shiftvalue = bottombyte;
     } else { // if bit 4 is 0
       shiftvalue = extract_bits(instruction, 7, 5);
+=======
+  for(uint32_t i=0; i< MEM_SIZE; i+=4) {
+    uint32_t fetched = 0;
+    int j;
+    for(j=0; j<3; j++) {
+      fetched += Machine->memory[i+j];
+      fetched = fetched << 8;
+>>>>>>> master
     }
-    switch (shifttype) {
-      case (0) :
-        offset = lsl(valrm, shiftvalue);
-        break;
-      case (1) :
-        offset = lsr(valrm, shiftvalue);
-        break;
-      case (2) :
-        offset = asr(valrm, shiftvalue);
-        break;
-      case (3) :
-        offset = ror(valrm, shiftvalue);
-        break;
-      default :
-        printf("Error in choosing shift type\n");
-        return;
+    fetched += Machine->memory[i+j];
+    if (fetched != 0) { 
+      printf("0x%08x: 0x%08x\n", i, fetched);
     }
+<<<<<<< HEAD
     printf("offset = %d\n", offset); 
   } else { // I = 0, offset is immediate
     offset = extract_bits(instruction, offset_strt, 12);
@@ -581,5 +584,57 @@ uint32_t load_mem_word(uint32_t start) {
 void store_mem_word(uint32_t word, uint32_t start) { 
   for (int i = 0; i < 4; i++) {
     memory[start+i] = extract_bits(word, 8*i, 8);
+=======
   }
+}
+
+//NULL function so to say
+void do_nothing (uint32_t *args, struct machine_state *mach) {
+  return;
+}
+
+int main(int argc, char **argv) {
+  assert(argc == 2);
+  const char *file_name = *(argv+1);
+  
+  struct pipeline *pip_ptr = malloc(sizeof(struct pipeline));
+  struct machine_state *mach_ptr = malloc(sizeof(struct machine_state));
+  
+  //Set all memory locations and registers to 0
+  mach_ptr->registers = (uint32_t*) malloc(NUM_REGS * sizeof(uint32_t));  
+  mach_ptr->memory = (uint8_t*) malloc(MEM_SIZE * sizeof(uint8_t));
+  
+  initialize_memories(mach_ptr);
+  
+  //Program load in memory using a  little endian format
+  load_memory(file_name, mach_ptr);
+  
+  //Initializing the pipeline 
+  //pip_ptr->decoded_args = (uint32_t*) malloc(6 * sizeof(uint32_t));
+  //pip_ptr->decoded_args = &dummy[0];
+  pip_ptr->fetched = (uint32_t*) malloc(sizeof(uint32_t));
+  pip_ptr->decoded = &do_nothing;
+  pip_ptr->halt = 0;
+  int cycle = 1;
+  while(pip_ptr->halt == 0) {
+    pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr);
+    decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
+    fetch(pc, pip_ptr, mach_ptr);
+    pc += 4;
+    cycle ++;
+    //output_machine_state(mach_ptr);
+  } 
+  
+  output_machine_state(mach_ptr);
+  
+  free(mach_ptr);
+  free(mach_ptr->memory);
+  free(mach_ptr->registers);
+  if (pip_ptr->decoded_args) {
+    free(pip_ptr->decoded_args);
+>>>>>>> master
+  }
+  free(pip_ptr->fetched);
+  free(pip_ptr);
+  return EXIT_SUCCESS;
 }
