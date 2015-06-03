@@ -9,10 +9,11 @@
 #define MAX_OPERANDS (3)
 
 struct Instruction {
+   _Bool isLabel;
    int numOperands;
-   char* label;
-   char* opcode;
-   char * operands[MAX_OPERANDS];
+   char *label;
+   char *mnemonic;
+   char *operands[MAX_OPERANDS];
 };
 
 void write_to_output(FILE *dst, int x);
@@ -35,10 +36,17 @@ int main(int argc, char **argv) {
   
   assert (src != NULL);
   assert (dst != NULL);
-  const int linenum = getnumlines(src);
-  struct Instruction instructions[linenum];      
+  
+  //first pass. break the instructions and create symbol table
+  struct Instruction instructions[getnumlines(src)];      
   tokeniseLine(instructions, src);
+  
+  char line[MAX_LENGTH];
+  for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
+    if (!instructions[i].isLabel) {
     
+    }
+  }
       
   
   fclose(src);
@@ -62,26 +70,24 @@ int getnumlines(FILE* src) {
   return num;
 }
 
+//breaks an instruction into it's different parts and creates symbol table
 void tokeniseLine(struct Instruction* instructions, FILE* src) {
   char line[MAX_LENGTH];
   for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
     instructions[i].numOperands = 0;
     if (strchr(line, ':')) {
+      instructions[i].isLabel = true;
       instructions[i].label = strtok(line, ":");
-      printf("%s\n", instructions[i].label);
     }
     else {
-      instructions[i].opcode = strtok(line, " ");
-      printf("%s\n", instructions[i].opcode);  
+      instructions[i].isLabel = false;
+      instructions[i].mnemonic = strtok(line, " ");
       char* nextOperand = strtok(NULL, ",");
       while(nextOperand!= NULL) {
         instructions[i].operands[instructions[i].numOperands]
          = nextOperand;
         nextOperand = strtok(NULL, ",");
         instructions[i].numOperands ++;
-      }
-      for (int j = 0; j < instructions[i].numOperands; j++) {
-          printf("%s\n", instructions[i].operands[j]);
       }
     }
   }
