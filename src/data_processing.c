@@ -223,6 +223,7 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
     o2 = (*shift_ptr[shift]) (mach->registers[reg], sregv, mach); 
   } 
   if (!imm && !read_bit(instr, 4)) {
+    //printf("Got to this branch \n");
     int reg = extract_bits(instr, 0, 4);
     int shift = extract_bits(instr, 5, 2);
     uint8_t val = extract_bits(instr, 7, 5);

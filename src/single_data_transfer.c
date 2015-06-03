@@ -26,16 +26,18 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
   uint32_t address;
   //printf ("Unprocessed offset = %i", instruction.offset); 
   if (instruction.immediate) {
+    instr = clear_bit(instr,25);
     process_args(instr, pip, mach);
     uint32_t processed_offset = *(pip->decoded_args + 1);
     address 
       = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
         processed_offset;
+    //printf("Address is : %i\n", address);
+    //printf("OFFSET BE LIKE : %i\n",processed_offset);
   } else { 
     //printf("This branch");
     address = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
               instruction.offset;
-    //printf("Address is : %i", address);
   }
   uint32_t arg2;
   if (instruction.pre ==1) {
@@ -59,6 +61,7 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
 void load_word(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
  if (args[1] > 64 *1024) {
     printf("Error: Out of bounds memory access at address %#10x\n", args[1]);
+    return;
  }
  uint32_t res = 0;
   for(int i=3; i > 0; i--) {
