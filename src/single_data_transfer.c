@@ -24,7 +24,7 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
   instruction.offset = extract_bits(instr, 0, 12);
  
   uint32_t address;
-  printf ("Unprocessed offset = %i", instruction.offset); 
+  //printf ("Unprocessed offset = %i", instruction.offset); 
   if (instruction.immediate) {
     process_args(instr, pip, mach);
     uint32_t processed_offset = *(pip->decoded_args + 1);
@@ -32,10 +32,10 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
       = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
         processed_offset;
   } else { 
-    printf("This branch");
+    //printf("This branch");
     address = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
               instruction.offset;
-    printf("Address is : %i", address);
+    //printf("Address is : %i", address);
   }
   uint32_t arg2;
   if (instruction.pre ==1) {
