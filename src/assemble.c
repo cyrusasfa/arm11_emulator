@@ -37,6 +37,8 @@ uint32_t add(struct Instruction *instruction);
 
 uint32_t orr(struct Instruction *instruction);
 
+uint32_t set_compute_result(struct Instruction *instruction, uint32_t machineCode);
+
 uint32_t mov(struct Instruction *instruction);
 
 uint32_t tst(struct Instruction *instruction);
@@ -45,11 +47,11 @@ uint32_t teq(struct Instruction *instruction);
 
 uint32_t cmp(struct Instruction *instruction);
 
-uint32_t set_compute_result(struct Instruction *instruction, uint32_t machineCode);
-
-uint32_t set_operand2(struct Instruction *instruction, uint32_t machineCode);
+uint32_t set_changes_cpsr(struct Instruction *instruction, uint32_t machineCode);
 
 uint32_t data_processing(struct Instruction * instruction, uint32_t machineCode);
+
+uint32_t set_operand2(struct Instruction *instruction, uint32_t machineCode);
 
 int main(int argc, char **argv) {
   assert(argc == 3);
@@ -161,6 +163,16 @@ uint32_t orr(struct Instruction *instruction) {
   return set_compute_result(instruction, result);
 }
 
+uint32_t set_compute_result(struct Instruction *instruction, uint32_t machineCode) {
+  // sets the bits generic to dataprocessing instructions which compute results;
+  machineCode = set_bit(machineCode,20); //all of them update cpsr
+  int regnum = look_up(&registers,instruction->operands[0]);
+  machineCode = set_field(machineCode, regnum, 19, 4); //Rn register goes here
+  regnum = look_up(&registers,instruction->operands[1]);
+  machineCode = set_field(machineCode, regnum, 15, 4); // Rd register goes here
+  return data_processing(instruction, machineCode);
+}
+
 uint32_t mov(struct Instruction *instruction) {
   //sets the bits specific to move
   uint32_t result = 0;
@@ -169,25 +181,47 @@ uint32_t mov(struct Instruction *instruction) {
   result = set_field(result, 0, 19, 4); //Rn is ignored by mov
   int regnum = look_up(&registers,instruction->operands[0]);
   result = set_field(result, regnum, 15, 4); // Rd register goes here
-  result = set_operand2(instruction, result);
   return data_processing(instruction, result);
 }
 
-uint32_t set_compute_result(struct Instruction *instruction, uint32_t machineCode) {
-  // sets the bits generic to dataprocessing instructions which compute results;
-  machineCode = set_bit(machineCode,20); //sub does update cpsr
-  int regnum = look_up(&registers,instruction->operands[0]);
+uint32_t tst(struct Instruction *instruction) {
+  //sets the bits specific to tst
+  uint32_t result = 0;
+  result = set_field(result, 8, 24, 4); // opcode for tst is 1000
+  return set_changes_cpsr(instruction, result);
+}
+
+uint32_t teq(struct Instruction *instruction) {
+  //sets the bits specific to teq
+  uint32_t result = 0;
+  result = set_field(result, 9, 24, 4); // opcode for teq is 1001
+  return set_changes_cpsr(instruction, result);
+}
+
+uint32_t cmp(struct Instruction *instruction) {
+  //sets the bits specific to tst
+  uint32_t result = 0;
+  result = set_field(result, 10, 24, 4); // opcode for cmp is 1010
+  return set_changes_cpsr(instruction, result);
+}
+
+uint32_t set_changes_cpsr(struct Instruction *instruction, uint32_t machineCode) {
+  // sets the generic bits of dataprocessing instructions that don't compute a
+  // result but still update cpsr
+  machineCode = set_bit(machineCode, 20); //they all update cpsr
+  int regnum = look_up(&registers,instruction->operands[1]);
   machineCode = set_field(machineCode, regnum, 19, 4); //Rn register goes here
-  regnum = look_up(&registers,instruction->operands[1]);
-  machineCode = set_field(machineCode, regnum, 15, 4); // Rd register goes here
-  machineCode = set_operand2(instruction, machineCode);
+  machineCode = set_field(machineCode, 0, 15, 4); //Rd is ignored
   return data_processing(instruction, machineCode);
 }
 
-uint32_t set_operand2(struct Instruction *instruction, uint32_t machineCode) {
-  //sets dataprocessing operand2 and the Ibit
+uint32_t data_processing(struct Instruction *instruction, uint32_t machineCode) {
+  //sets the bits that are generic in all data processing instructions
+  machineCode = set_field(machineCode, 14, 31, 4);// cond is always 1110
+  machineCode = set_field(machineCode, 0, 27, 2);// bits 27,26 are always 0
+  return set_operand2(instruction, machineCode);// sets operand 2
 }
 
-uint32_t data_processing(struct Instruction *instruction, uint32_t machineCode) {
-//sets the bits that are generic in all data processing instructions
+uint32_t set_operand2(struct Instruction *instruction, uint32_t machineCode) {
+  //sets data processing operand2 and the I bit
 }
