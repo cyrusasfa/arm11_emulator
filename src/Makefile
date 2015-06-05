@@ -9,7 +9,29 @@ all: assemble emulate
 
 assemble: assemble.o
 
-emulate: emulate.o
+emulate:  emulate.o 
+	$(CC) emulate.o execution_cycle.o utility.o data_processing.o multiply.o single_data_transfer.o branch.o -o emulate
+
+emulate.o: machine.h execution_cycle.o emulate.c
+	$(CC) $(CFLAGS) emulate.c -c -o emulate.o  
+
+execution_cycle.o : machine.h execution_cycle.c execution_cycle.h data_processing.o multiply.o branch.o single_data_transfer.o utility.o
+	$(CC) $(CFLAGS) execution_cycle.c -c -o execution_cycle.o
+
+utility.o : utility.h utility.c
+	$(CC) $(CFLAGS) utility.c -c -o utility.o
+  
+data_processing.o : machine.h utility.o data_processing.h data_processing.c
+	$(CC) $(CFLAGS) data_processing.c -c -o data_processing.o
+
+multiply.o : utility.o machine.h multiply.c multiply.h
+	$(CC) $(CFLAGS) multiply.c -c -o multiply.o
+
+single_data_transfer.o : utility.o machine.h single_data_transfer.h single_data_transfer.c
+	$(CC) $(CFLAGS) single_data_transfer.c -c -o single_data_transfer.o
+
+branch.o : utility.o machine.h branch.h branch.c
+	$(CC) $(CFLAGS) branch.c -c -o branch.o
 
 clean:
 	rm -rf $(wildcard *.o)

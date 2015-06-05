@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "symboltable.h"
+#include "tables.h"
+#include "utility.h"
 
 #define MAX_LENGTH (512)
 #define MAX_OPERANDS (3)
@@ -16,11 +19,17 @@ struct Instruction {
    char *operands[MAX_OPERANDS];
 };
 
-void write_to_output(FILE *dst, int x);
+void write_to_output(FILE *dst, uint32_t x);
 
-void tokeniseLine(struct Instruction*  parsedinput, FILE* src);
+void tokenise_lines(struct Instruction*  parsedinput, Map* table, FILE* src);
 
-int getnumlines(FILE* src);
+int get_num_lines(FILE* src);
+
+uint32_t data_processing(struct Instruction * instruction);
+
+uint32_t mov(struct Instruction * instruction);
+
+uint32_t add(struct Instruction *instruction);
 
 int main(int argc, char **argv) {
   assert(argc == 3);
@@ -29,7 +38,7 @@ int main(int argc, char **argv) {
   const char* dstname = argv[2];
   
   FILE *src;
-  FILE * dst;
+  FILE *dst;
   
   src = fopen(srcname, "r");
   dst = fopen(dstname, "wb");
@@ -38,16 +47,10 @@ int main(int argc, char **argv) {
   assert (dst != NULL);
   
   //first pass. break the instructions and create symbol table
-  struct Instruction instructions[getnumlines(src)];      
-  tokeniseLine(instructions, src);
-  
-  char line[MAX_LENGTH];
-  for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
-    if (!instructions[i].isLabel) {
-    
-    }
-  }
-      
+  struct Instruction instructions[get_num_lines(src)];
+  Map* table;
+  init_table(table);
+  tokenise_lines(instructions, table, src);
   
   fclose(src);
   fclose(dst);
@@ -56,11 +59,11 @@ int main(int argc, char **argv) {
 }
 
 //writes an int (instruction) to the binary file;
-void writeToOutput(FILE *dst, int x) {
+void write_to_output(FILE *dst, uint32_t x) {
   fwrite(&x, sizeof(x), 1, dst);
 }
 
-int getnumlines(FILE* src) {
+int get_num_lines(FILE* src) {
   int num = 0;
   char str[MAX_LENGTH];
   while (fgets(str, MAX_LENGTH, src)) {
@@ -71,13 +74,16 @@ int getnumlines(FILE* src) {
 }
 
 //breaks an instruction into it's different parts and creates symbol table
-void tokeniseLine(struct Instruction* instructions, FILE* src) {
+void tokenise_lines(struct Instruction* instructions, Map* table, FILE* src) {
+  int numLabels = 0;
   char line[MAX_LENGTH];
   for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
     instructions[i].numOperands = 0;
     if (strchr(line, ':')) {
       instructions[i].isLabel = true;
       instructions[i].label = strtok(line, ":");
+      insert(table, instructions[i].label, (i - numLabels) * 4);
+      numLabels++;
     }
     else {
       instructions[i].isLabel = false;
@@ -85,10 +91,38 @@ void tokeniseLine(struct Instruction* instructions, FILE* src) {
       char* nextOperand = strtok(NULL, ",");
       while(nextOperand!= NULL) {
         instructions[i].operands[instructions[i].numOperands]
-         = nextOperand;
+          = nextOperand;
         nextOperand = strtok(NULL, ",");
         instructions[i].numOperands ++;
       }
     }
   }
+}
+
+uint32_t data_processing(struct Instruction *instruction) {
+//sets the bits that are generic in all data processing instructions
+}
+
+uint32_t mov(struct Instruction *instruction) {
+  //sets the bits specific to move
+  uint32_t result = 0;
+  result = set_bit(result, 25); // I is set since operand2 is an immediate value
+  result = set_field(result, 13, 24, 4); // opcode for mov is 1
+  result = clear_bit(result,20); //mov does not update cpsr
+  result = set_field(result, 0, 19, 4); //Rn is ignored by mov
+  int regnum = look_up(&registers,instruction->operands[0]);
+  result = set_field(result, regnum, 15, 4); // Rd register oes here
+  //call seperate function for setting operand 2
+  //call seperate function for setting generic data processing
+}
+
+uint32_t add(struct Instruction *instruction) {
+  //sets the bits specific to add
+  uint32_t result = 0;
+  result = clear_bit(result, 25); // I is cleared since operand2 is an immediate value
+  result = set_field(result, 13, 24, 4); // opcode for mov is 1
+  result = clear_bit(result,20); //mov does not update cpsr
+  result = set_field(result, 0, 19, 4); //Rn is ignored by mov
+  int regnum = look_up(&registers,instruction->operands[0]);
+  result = set_field(result, regnum, 15, 4); // Rd register goes here
 }
