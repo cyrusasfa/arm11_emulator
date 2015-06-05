@@ -30,8 +30,11 @@ multiply.o : utility.o machine.h multiply.c multiply.h
 single_data_transfer.o : utility.o machine.h single_data_transfer.h single_data_transfer.c
 	$(CC) $(CFLAGS) single_data_transfer.c -c -o single_data_transfer.o
 
-branch.o : utility.o machine.h branch.h branch.c
+branch.o : utility.o utility.c
 	$(CC) $(CFLAGS) branch.c -c -o branch.o
+
+gpio.o : utility.o machine.h multiply.c multiply.h
+	$(CC) $(CFLAGS) gpio.c -c -o gpio.o
 
 clean:
 	rm -rf $(wildcard *.o)

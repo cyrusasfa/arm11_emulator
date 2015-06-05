@@ -8,6 +8,7 @@
 #include "utility.h"
 #include "machine.h"
 #include "execution_cycle.h"
+#include "gpio.h"
 
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
@@ -66,6 +67,7 @@ void output_machine_state(struct machine_state *Machine) {
 
 
 int main(int argc, char **argv) {
+  gpio_run(538968068, 538968104, 538968092, 16);
   assert(argc == 2);
   const char *file_name = *(argv+1);
   
