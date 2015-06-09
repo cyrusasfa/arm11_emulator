@@ -8,3 +8,4 @@ void clear_pin(uint32_t memory_clear, int bit);
 void set_pin(uint32_t memory_set, int bit);
 
 #endif
+

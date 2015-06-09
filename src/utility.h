@@ -12,4 +12,10 @@ uint32_t clear_bit(int32_t number, int bit);
 
 void do_nothing (uint32_t *args, struct machine_state *mach, struct pipeline *pip); 
 
+uint32_t lsl(int reg, int shiftvalue, struct machine_state *mach);
+
+uint32_t lsr(int reg, int shiftvalue, struct machine_state *mach);
+
+uint32_t asr(int reg, int shiftvalue, struct machine_state *mach);
+
 #endif

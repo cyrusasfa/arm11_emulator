@@ -33,8 +33,8 @@ single_data_transfer.o : utility.o machine.h single_data_transfer.h single_data_
 branch.o : utility.o utility.c
 	$(CC) $(CFLAGS) branch.c -c -o branch.o
 
-gpio.o : utility.o machine.h multiply.c multiply.h
-	$(CC) $(CFLAGS) gpio.c -c -o gpio.o
+#gpio.o : utility.o machine.h multiply.c multiply.h
+#	$(CC) $(CFLAGS) gpio.c -c -o gpio.o
 
 clean:
 	rm -rf $(wildcard *.o)
