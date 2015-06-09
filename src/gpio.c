@@ -7,12 +7,12 @@
 #include "gpio.h"
 
 void gpio_run (uint32_t memory_out, uint32_t memory_clear, uint32_t memory_set, int gpio_pin) {
-	if(extrct_bits(memory, 18, 3) != 1) {
-		memory_out = set_bit(memory_out, 18);
-		memory_out = clear_bit(memory_out, 19);
-		memory_out = clear_bit(memory_out, 20);
+	if(extract_bits(memory, 18, 3) != 1) {
+		set_pin(memory_out, 18);
+		clear_pin(memory_out, 19);
+		clear_pin(memory_out, 20);
 	}
-	for (; i < 10; ++i){
+	for (int i = 0; i < 10; ++i){
 		clear_pin(memory_clear, gpio_pin);
 		sleep(1000);
 		set_pin(memory_set, gpio_pin);
