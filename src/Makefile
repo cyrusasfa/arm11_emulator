@@ -10,7 +10,7 @@ all: assemble emulate
 assemble: assemble.o
 
 emulate:  emulate.o 
-	$(CC) emulate.o execution_cycle.o utility.o data_processing.o multiply.o single_data_transfer.o branch.o -o emulate
+	$(CC) emulate.o execution_cycle.o gpio.o utility.o data_processing.o multiply.o single_data_transfer.o branch.o -o emulate
 
 emulate.o: machine.h execution_cycle.o emulate.c
 	$(CC) $(CFLAGS) emulate.c -c -o emulate.o  
@@ -30,11 +30,11 @@ multiply.o : utility.o machine.h multiply.c multiply.h
 single_data_transfer.o : utility.o machine.h single_data_transfer.h single_data_transfer.c
 	$(CC) $(CFLAGS) single_data_transfer.c -c -o single_data_transfer.o
 
-branch.o : utility.o utility.c
+branch.o : utility.o
 	$(CC) $(CFLAGS) branch.c -c -o branch.o
 
-#gpio.o : utility.o machine.h multiply.c multiply.h
-#	$(CC) $(CFLAGS) gpio.c -c -o gpio.o
+gpio.o : utility.o gpio.h gpio.c
+	$(CC) $(CFLAGS) gpio.c -c -o gpio.o
 
 clean:
 	rm -rf $(wildcard *.o)
