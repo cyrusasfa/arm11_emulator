@@ -12,7 +12,7 @@ assemble: assemble.o
 emulate:  emulate.o 
 	$(CC) emulate.o execution_cycle.o gpio.o utility.o data_processing.o multiply.o single_data_transfer.o branch.o -o emulate
 
-emulate.o: machine.h execution_cycle.o emulate.c
+emulate.o: gpio.o machine.h execution_cycle.o emulate.c
 	$(CC) $(CFLAGS) emulate.c -c -o emulate.o  
 
 execution_cycle.o : machine.h execution_cycle.c execution_cycle.h data_processing.o multiply.o branch.o single_data_transfer.o utility.o
