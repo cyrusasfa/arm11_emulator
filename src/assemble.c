@@ -10,20 +10,19 @@
 
 #define MAX_LENGTH (512)
 #define MAX_OPERANDS (3)
+#define INSTRUCTION_LENGTH (32)
 
 struct Instruction {
-   _Bool isLabel;
    int numOperands;
-   char *label;
    char *mnemonic;
    char *operands[MAX_OPERANDS];
 };
 
 void write_to_output(FILE *dst, uint32_t x);
 
-void tokenise_lines(struct Instruction*  parsedinput, Map* table, FILE* src);
+Map *create_label_table(void);
 
-int get_num_lines(FILE* src);
+void tokenise_lines(struct Instruction*  parsedinput, Map* table, FILE* src);
 
 uint32_t and(struct Instruction *instruction);
 
@@ -70,8 +69,9 @@ int main(int argc, char **argv) {
   
   //first pass. break the instructions and create symbol table
   struct Instruction instructions[get_num_lines(src)];
-  Map* table;
-  init_table(table);
+  
+  Map * label_table = create_label_table(); //create symbol table
+  
   tokenise_lines(instructions, table, src);
   
   fclose(src);
@@ -85,18 +85,8 @@ void write_to_output(FILE *dst, uint32_t x) {
   fwrite(&x, sizeof(x), 1, dst);
 }
 
-int get_num_lines(FILE* src) {
-  int num = 0;
-  char str[MAX_LENGTH];
-  while (fgets(str, MAX_LENGTH, src)) {
-    num++;
-  }
-  fseek(src, 0, SEEK_SET);
-  return num;
-}
-
 //breaks an instruction into it's different parts and creates symbol table
-void tokenise_lines(struct Instruction* instructions, Map* table, FILE* src) {
+I tokenise_line(struct Instruction* instructions, Map* table, FILE* src) {
   int numLabels = 0;
   char line[MAX_LENGTH];
   for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
@@ -119,6 +109,24 @@ void tokenise_lines(struct Instruction* instructions, Map* table, FILE* src) {
       }
     }
   }
+}
+
+Map *create_label_table(void) {
+  
+  Map * result = malloc(sizeof(Map));
+  init_table(result);
+  
+  char line[MAX_LENGTH];
+  
+  for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
+    
+    if (strchr(line, ':')) {
+     
+      instructions[i].label = strtok(line, ":");
+      insert(table, instructions[i].label, (i - table->size) * 4);
+    }
+  }
+  return result;
 }
 
 uint32_t and(struct Instruction *instruction) {
@@ -223,5 +231,37 @@ uint32_t data_processing(struct Instruction *instruction, uint32_t machineCode) 
 }
 
 uint32_t set_operand2(struct Instruction *instruction, uint32_t machineCode) {
-  //sets data processing operand2 and the I bit
+  char *operand2 = instruction->operands[(instruction->numOperands - 1)];
+  if (operand2[0] ==  '#') {
+    machineCode = set_bit(machineCode, 25); // set I bit (immediate value)
+    int value;
+    operand2++;
+    if (operand2[1] == '0') { //value is in hex
+      value = (int) strtol(operand2, NULL, 0);
+    }
+    else { // value is decimal
+      value = (int) strtol(operand2, NULL, 10);
+    }
+    if (value < 255) { //immediate value fits in 8 bits
+      machineCode = set_field(machineCode, value, 7, 8);//put value in bits 7..0
+      machineCode = set_field(machineCode, 0, 11, 4); //rotate bits are 0
+    }
+    else { // value does not fit in 8 bits
+      int temp;
+      for (temp = 0; value % 2 != 1; temp++) {
+        value >>= 1;
+      }
+      if (temp % 2 != 0) {
+        temp--;
+        value <<= 1;
+      }
+      int rotation = (INSTRUCTION_LENGTH - temp) / 2;
+      machineCode = set_field(machineCode, value, 7, 8);
+      machineCode = set_field(machineCode, rotation, 11, 4);
+    }
+  }
+  else {// this case is optional
+
+  }
+    return machineCode;
 }

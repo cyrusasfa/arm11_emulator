@@ -16,7 +16,7 @@ typedef struct key_value_map {
 void init_table(Map *map);
 int look_up(Map *map, char *key);
 void insert(Map *map, char *key, int value);
-void double_size(Map *map);
+void double_space(Map *map);
 void free_table(Map *map);
 
 #endif
