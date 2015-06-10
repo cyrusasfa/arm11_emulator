@@ -4,9 +4,10 @@
 #include "symboltable.h"
 #include <stdlib.h>
 
-extern char *registerNames[16];
-extern int registerInts[16];
+extern char *register_names[16];
+extern int register_numbers[16];
 
 extern Map registers;
+extern Map mnemonic_table;
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef SYMBOLTABLE_H
 #define SYMBOLTABLE_H 
 
+#define MAX_LENGTH 512
 #define INIT_SPACE 50
 #define NOT_FOUND -1
 

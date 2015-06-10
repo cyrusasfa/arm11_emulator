@@ -1,6 +1,9 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 bool read_bit(int instruction, int index);
 
 unsigned int extract_bits(int instruction, int start, int length);

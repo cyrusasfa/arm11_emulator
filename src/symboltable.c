@@ -13,7 +13,9 @@ void init_table(Map *map) {
 }
 
 void free_table(Map *map) {
-  // reset map
+  for (int i = 0; i < map->size; i++) {
+    free(map->keys[i]);
+  }
   free(map->keys);
   free(map->values);
   free(map);
@@ -23,7 +25,7 @@ int look_up(Map *map, char *key) {
   // return 0 if not found
   int pos = -1;
   for (int i = 0; i < map->size; i++) {
-  	if (strcmp(map->keys[i], key) == 0) {
+    if (strcmp(map->keys[i], key) == 0) {
   	  pos = i;
   	}
   }
@@ -44,7 +46,8 @@ void insert(Map *map, char *key, int value) {
   if (map->space <= map->size) {
   	double_space(map); // reallocates space for the list
   }
-  map->keys[map->size] = key;
+  map->keys[map->size] = malloc(sizeof(char) * MAX_LENGTH);
+  strcpy(map->keys[map->size], key);
   map->values[map->size] = value;
   map->size++;
 }
