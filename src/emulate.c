@@ -67,7 +67,6 @@ void output_machine_state(struct machine_state *Machine) {
 
 
 int main(int argc, char **argv) {
-  gpio_run(538968068, 538968104, 538968092, 16);
   assert(argc == 2);
   const char *file_name = *(argv+1);
   
