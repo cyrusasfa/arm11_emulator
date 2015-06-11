@@ -15,27 +15,27 @@ Map *create_label_table(FILE *src);
 
 void tokenise_and_assemble(char *  instruction, Map* table, FILE *dst);
 
-uint32_t and(char  *instruction);
+uint32_t and(char *instruction, Map* symbol_table);
 
-uint32_t eor(char  *instruction);
+uint32_t eor(char *instruction, Map* symbol_table);
 
-uint32_t sub(char  *instruction);
+uint32_t sub(char *instruction, Map* symbol_table);
 
-uint32_t rsb(char  *instruction);
+uint32_t rsb(char *instruction, Map* symbol_table);
 
-uint32_t add(char  *instruction);
+uint32_t add(char *instruction, Map* symbol_table);
 
-uint32_t orr(char  *instruction);
+uint32_t orr(char *instruction, Map* symbol_table);
 
 uint32_t set_compute_result(char  *instruction, uint32_t machineCode);
 
-uint32_t mov(char  *instruction);
+uint32_t mov(char *instruction, Map* symbol_table);
 
-uint32_t tst(char  *instruction);
+uint32_t tst(char *instruction, Map* symbol_table);
 
-uint32_t teq(char  *instruction);
+uint32_t teq(char *instruction, Map* symbol_table);
 
-uint32_t cmp(char  *instruction);
+uint32_t cmp(char *instruction, Map* symbol_table);
 
 uint32_t set_changes_cpsr(char  *instruction, uint32_t machineCode);
 

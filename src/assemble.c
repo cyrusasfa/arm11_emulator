@@ -56,7 +56,7 @@ void write_to_output(FILE *dst, uint32_t x) {
 void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   
   
-  uint32_t (*op_ptrs[23])(char *);
+  uint32_t (*op_ptrs[23])(char *, Map*);
   op_ptrs[0]  = &add; 
   op_ptrs[1]  = &sub; 
   op_ptrs[2]  = &rsb;
@@ -87,7 +87,7 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   instruction = strtok(NULL, "\0");
   
   
-  uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)](instruction);
+  uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)](instruction, table);
   write_to_output(dst, machinecode);
 }
 
@@ -109,7 +109,7 @@ Map *create_label_table(FILE *src) {
   return result;
 }
 
-uint32_t and(char  *instruction) {
+uint32_t and(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to and
   
@@ -120,7 +120,7 @@ uint32_t and(char  *instruction) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t eor(char  *instruction) {
+uint32_t eor(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to eor
   
@@ -131,7 +131,7 @@ uint32_t eor(char  *instruction) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t sub(char  *instruction) {
+uint32_t sub(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to sub
   
@@ -142,7 +142,7 @@ uint32_t sub(char  *instruction) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t rsb(char  *instruction) {
+uint32_t rsb(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to rsb
   
@@ -153,7 +153,7 @@ uint32_t rsb(char  *instruction) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t add(char  *instruction) {
+uint32_t add(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to add
   
@@ -164,7 +164,7 @@ uint32_t add(char  *instruction) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t orr(char  *instruction) {
+uint32_t orr(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to orr
   
@@ -175,7 +175,7 @@ uint32_t orr(char  *instruction) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t set_compute_result(char  *instruction, uint32_t machineCode) {
+uint32_t set_compute_result(char *instruction, uint32_t machineCode) {
   
   // sets the bits generic to dataprocessing instructions which compute results;
   
@@ -191,7 +191,7 @@ uint32_t set_compute_result(char  *instruction, uint32_t machineCode) {
   return data_processing(instruction, machineCode);
 }
 
-uint32_t mov(char  *instruction) {
+uint32_t mov(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to move
   
@@ -209,7 +209,7 @@ uint32_t mov(char  *instruction) {
   return data_processing(instruction, result);
 }
 
-uint32_t tst(char  *instruction) {
+uint32_t tst(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to tst
   
@@ -220,7 +220,7 @@ uint32_t tst(char  *instruction) {
   return set_changes_cpsr(instruction, result);
 }
 
-uint32_t teq(char  *instruction) {
+uint32_t teq(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to teq
   
@@ -231,7 +231,7 @@ uint32_t teq(char  *instruction) {
   return set_changes_cpsr(instruction, result);
 }
 
-uint32_t cmp(char  *instruction) {
+uint32_t cmp(char *instruction, Map* symbol_table) {
   
   //sets the bits specific to tst
   
