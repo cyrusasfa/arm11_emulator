@@ -9,6 +9,7 @@
 #include "data_processing.h"
 #include "machine.h"
 #include "single_data_transfer.h"
+#include "gpio.h"
 
 uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state *mach) {
   uint32_t *ret = (uint32_t*) malloc(2 * sizeof(int32_t));
@@ -24,7 +25,6 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
   instruction.offset = extract_bits(instr, 0, 12);
  
   uint32_t address;
-  //printf ("Unprocessed offset = %i", instruction.offset); 
   if (instruction.immediate) {
     instr = clear_bit(instr,25);
     process_args(instr, pip, mach);
@@ -32,10 +32,7 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
     address 
       = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
         processed_offset;
-    //printf("Address is : %i\n", address);
-    //printf("OFFSET BE LIKE : %i\n",processed_offset);
   } else { 
-    //printf("This branch");
     address = mach->registers[instruction.rn] - (1 - 2 * instruction.up) * 
               instruction.offset;
   }
@@ -59,24 +56,30 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
 }
 
 void load_word(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
+ if (check_address(args[1])) {
+    GPIO_access(mach, args);
+    return;
+ }
+ 
  if (args[1] > 64 *1024) {
     printf("Error: Out of bounds memory access at address %0#10x\n", args[1]);
     return;
  }
- uint32_t res = 0;
-  for(int i=3; i > 0; i--) {
-    res += mach->memory[args[1] + i];
-    res <<= 8;
-  }
-  res += mach->memory[args[1]];
-  mach->registers[args[0]] = res;
+
+ get_mem(mach, args);
 }
 
 void store_word(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  uint32_t word = mach->registers[args[0]];
-  for(int i=3; i >= 0; i--) {
-    mach->memory[args[1]+i] = extract_bits(word, 8*i, 8);
+  if (check_address(args[1])) {
+    GPIO_write(mach, args);
+    return;
   }
+ 
+  if (args[1] > 64 *1024) {
+    printf("Error: Out of bounds memory access at address %0#10x\n", args[1]);
+    return;
+  }
+  put_mem(mach, args);  
 }
 
 

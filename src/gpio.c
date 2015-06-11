@@ -7,74 +7,52 @@
 #include "gpio.h"
 #include <unistd.h>
 
-void gpio_run (uint32_t memory_out, uint32_t memory_clear, uint32_t memory_set, 
-																uint8_t gpio_pin) {
-	
-	int starting_bit = GPIO_starting_bit(gpio_pin);
-  if(GPIO_bits_value(memory_out, gpio_pin) != 1) {
+#define F_PIN_S (0x20200000)
+#define F_PIN_M (0x20200004)
+#define F_PIN_E (0x20200008)
+#define SET_P (0x2020001c)
+#define CLR_P (0x20200028)
 
-		set_pin(memory_out, starting_bit);
-		clear_pin(memory_out, starting_bit + 1);
-		clear_pin(memory_out, starting_bit + 2);
-	}
-	for (int i = 0; i < 10; ++i){
-		clear_pin(memory_clear, gpio_pin);
-		sleep(1000);
-		set_pin(memory_set, gpio_pin);
-		sleep(1000);
-	}
-}
-
-int GPIO_bits_value (uint32_t memory, uint8_t gpio_pin) {	
-	return extract_bits(memory, GPIO_starting_bit(gpio_pin), control_bits);
-}
-
-int GPIO_starting_bit (uint8_t gpio_pin) {
-	int aux = gpio_pin % 10; // turn the pin to 0 -> 9
-	return control_bits * aux; // starting bit of the bulk we need
-}
-
-void GPIO_access (uint32_t memory) {
-	switch (checkGPIO(memory)) {
-		case (0) :
+void GPIO_access (struct machine_state *mach, uint32_t* args ) {
+	switch (args[1]) {
+		case (F_PIN_S) :
 			printf("%s\n","One GPIO pin from 0 to 9 has been accessed");
-			break;
-		case (1) :
+      break;
+		case (F_PIN_M) :
 			printf("%s\n","One GPIO pin from 10 to 19 has been accessed");
-			break;
-		case (2) :
+      break;
+		case (F_PIN_E) :
+			printf("%s\n","One GPIO pin from 20 to 29 has been accessed");
+      break;
+		default :
+			printf("%s\n","Error");
+	}  
+  mach->registers[args[0]] = args[1];
+}
+
+void GPIO_write(struct machine_state *mach, uint32_t *args) {
+  switch (args[1]) {
+		case (F_PIN_S) :
 			printf("%s\n","One GPIO pin from 0 to 9 has been accessed");
-			break;
-		case (-1) :
-			printf("%s\n","Erorr");
-	}
-}
-int checkGPIO(uint32_t memory) {
-	if (memory == 538968064) { //0x20200000
-		return 0;
-	} else if(memory == 538968068) { //0x20200004
-		return 1;
-	} else if(memory == 538968072) { //0x20200008
-      return 2;
-	} else {
-	  return -1;
-	}
-}
-
-bool check_address(int address) {
-	if (address >= 64 * 1024) {
-		printf("Error: Out of bounds memory access at address %d\n", address);
-		return false;
-	} else {
-		return true;
-	}
+      break;
+		case (F_PIN_M) :
+			printf("%s\n","One GPIO pin from 10 to 19 has been accessed");
+      break;
+		case (F_PIN_E) :
+			printf("%s\n","One GPIO pin from 20 to 29 has been accessed");
+      break;
+		case (SET_P) :
+			printf("PIN ON\n");
+	    break;
+    case (CLR_P) :
+      printf("PIN OFF\n");
+      break;
+    default :
+      printf("ERROR\n");
+  }  
 }
 
-
-void clear_pin(uint32_t memory_clear, uint8_t bit) {
-	memory_clear = clear_bit(memory_clear, (uint8_t)bit);
-}
-
-void set_pin(uint32_t memory_set, uint8_t bit) {
-	memory_set = set_bit(memory_set, (uint8_t)bit);
+bool check_address(uint32_t address) {
+  return
+  (address >= F_PIN_S && address <= F_PIN_E) || address == CLR_P || address == SET_P; 
 }

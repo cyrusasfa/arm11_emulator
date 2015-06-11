@@ -89,3 +89,20 @@ uint32_t ror(int reg, int shiftvalue, struct machine_state *mach) {
     return ret;
   }   
 }
+
+void get_mem(struct machine_state *mach, uint32_t *args) {
+ uint32_t res = 0;
+  for(int i=3; i > 0; i--) {
+    res += mach->memory[args[1] + i];
+    res <<= 8;
+  }
+  res += mach->memory[args[1]];
+  mach->registers[args[0]] = res;
+}
+void put_mem(struct machine_state *mach, uint32_t *args) {
+  uint32_t word = mach->registers[args[0]];
+  for(int i=3; i >= 0; i--) {
+    mach->memory[args[1]+i] = extract_bits(word, 8*i, 8);
+  }
+}
+

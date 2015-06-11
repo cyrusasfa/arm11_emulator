@@ -13,6 +13,7 @@
 #define MEM_SIZE (64*1024)
 #define NUM_REGS (17)
 #define REG_SIZE (32)
+#define GPIO_SIZE (5)
 
 #define pc  (mach_ptr->registers[15])
 
@@ -76,30 +77,22 @@ int main(int argc, char **argv) {
   //Set all memory locations and registers to 0
   mach_ptr->registers = (uint32_t*) malloc(NUM_REGS * sizeof(uint32_t));  
   mach_ptr->memory = (uint8_t*) malloc(MEM_SIZE * sizeof(uint8_t));
-  
+   
   initialize_memories(mach_ptr);
   
   //Program load in memory using a  little endian format
   load_memory(file_name, mach_ptr);
   
-  //Initializing the pipeline 
-  //pip_ptr->decoded_args = (uint32_t*) malloc(6 * sizeof(uint32_t));
-  //pip_ptr->decoded_args = &dummy[0];
-  //pip_ptr->fetched = (uint32_t*) malloc(sizeof(uint32_t));
   pip_ptr->decoded = &do_nothing;
   pip_ptr->halt = 0;
   int cycle = 1;
   while(pip_ptr->halt == 0) {
-    //printf("BLOCK HERE : %i\n", cycle);
     pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr, pip_ptr);
-    //printf("Executed dummy function\n");
     decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
-    //printf("Did the decode yeah\n");
     fetch(pc, pip_ptr, mach_ptr);
-    //printf("Did the fetch \n");
+    printf("PC : %x, FETCHED : %x\n", pc, *(pip_ptr->fetched));
     pc += 4;
     cycle ++;
-    //output_machine_state(mach_ptr);
   } 
   
   output_machine_state(mach_ptr);

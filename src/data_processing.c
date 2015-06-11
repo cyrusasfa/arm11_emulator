@@ -30,8 +30,6 @@ void set_flags_logic(struct machine_state *mach, uint32_t res) {
 }
 
 void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
-  //printf("RES is : %i\n", res);
-  //printf("RES bit 31 = %i\n", read_bit(res, 31));
   if(mach->alu_carryout) {
     mach->registers[16] = set_bit(mach->registers[16], 29);//Set C flag
   } else {
@@ -39,7 +37,6 @@ void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
   }
   if(res == 0) {
     mach->registers[16] = set_bit(mach->registers[16], 30);//Set Z flag
-    //printf("The Z flag : %i\n", read_bit(mach->registers[16], 30));
   } else {
     mach->registers[16] = clear_bit(mach->registers[16], 30);//Set Z flag
   }
@@ -49,14 +46,9 @@ void set_flags_arithmetic(struct machine_state *mach, uint32_t res) {
   } else {
     mach->registers[16] = clear_bit(mach->registers[16], 31);//Clear N flag
   }
-  //printf("The CPSR : %i\n", mach->registers[16]);
 }
 
 void and(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  // printf("ARG : 0 %i\n", args[0]);
-  // printf("ARG : 1 %i\n", args[1]);
-  // printf("ARG : 2 %i\n", args[2]);
-  // printf("ARG : 3 %i\n", args[3]);
   uint32_t res = mach->registers[args[0]] & args[1];
   mach->registers[args[2]] = res;
   if(args[3] == 1) {
@@ -117,14 +109,13 @@ void teq(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 }
 
 void cmp(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  //printf("ARGs[3] = %i\n", args[3]);
-  uint32_t res = mach->registers[args[0]] - args[1];
-  //printf("The RESULT : %i\n", res);
-  //if (mach->registers[args[0]] > 0 && args[1] > ((pow(2,31) - 1) - args[1])){
-  if(args[0] >= args[1]) {
-    mach->alu_carryout = true;
+  int32_t res = mach->registers[args[0]] - args[1]; 
+  if (res < 0) {
+    mach->alu_carryout = 0;
+  } else {
+    mach->alu_carryout = 1;
   }
-  if(args[3] == 1) {
+  if (args[3]) {
     set_flags_arithmetic(mach, res);
   }
 }
@@ -138,10 +129,6 @@ void orr(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 }
 
 void mov(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  //printf("Got to the mov function to be executed\n");
-  //printf("MOV : %i args[1]\n", args[1]);
-  //printf("MOV : %i args[2]\n", args[2]);
-  //printf("MOV : %i args[3]\n", args[3]);
   mach->registers[args[2]] = args[1];
   uint32_t res = mach->registers[args[2]];
   if(args[3] == 1) {

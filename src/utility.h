@@ -18,4 +18,7 @@ uint32_t lsr(int reg, int shiftvalue, struct machine_state *mach);
 
 uint32_t asr(int reg, int shiftvalue, struct machine_state *mach);
 
+void get_mem(struct machine_state *mach, uint32_t *args);
+
+void put_mem(struct machine_state *mach, uint32_t *args);
 #endif

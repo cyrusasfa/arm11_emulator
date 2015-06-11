@@ -1,5 +1,5 @@
 CC      = gcc
-CFLAGS  = -Wall -g -D_POSIX_SOURCE -D_BSD_SOURCE -std=c99 -Werror -pedantic
+CFLAGS  = -Wall -O2  -g -D_POSIX_SOURCE -D_BSD_SOURCE -std=c99 -Werror -pedantic
 
 .SUFFIXES: .c .o
 
@@ -30,7 +30,7 @@ multiply.o : utility.o machine.h multiply.c multiply.h
 single_data_transfer.o : utility.o machine.h single_data_transfer.h single_data_transfer.c
 	$(CC) $(CFLAGS) single_data_transfer.c -c -o single_data_transfer.o
 
-branch.o : utility.o
+branch.o : utility.o branch.c
 	$(CC) $(CFLAGS) branch.c -c -o branch.o
 
 gpio.o : utility.o gpio.h gpio.c

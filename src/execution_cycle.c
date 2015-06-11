@@ -13,7 +13,7 @@
 #include "branch.h"
 
 void fetch(uint32_t pc, struct pipeline *pipeline, struct machine_state *mach) {
-  int instr = 0;
+  uint32_t instr = 0;
   for(int i=3; i > 0; --i) {
     instr += mach->memory[pc + i];
     instr <<= 8;
@@ -26,13 +26,11 @@ void fetch(uint32_t pc, struct pipeline *pipeline, struct machine_state *mach) {
 void decode(int cycle, uint32_t *instr, struct pipeline *pipeline,
                struct machine_state *mach) {
   if (!instr || cycle == 1) {
-    //printf("no pointer\n");
     return;
   }
 
 
   if (*instr == 0) {
-      //printf("halt\n");
       pipeline->halt = 1;
       return;
   }
@@ -43,7 +41,6 @@ void decode(int cycle, uint32_t *instr, struct pipeline *pipeline,
   }
 
   if (read_bit(*instr, 27)) {
-    //printf("Got to just before the decode branch");
     decode_branch(*instr, pipeline, mach);
   } else if (read_bit(*instr,26)) {
     decode_data_trans(*instr, pipeline, mach);
