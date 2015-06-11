@@ -7,43 +7,7 @@
 #include "symboltable.h"
 #include "tables.h"
 #include "utility.h"
-
-#define MAX_OPERANDS (3)
-#define INSTRUCTION_LENGTH (32)
-
-void write_to_output(FILE *dst, uint32_t x);
-
-Map *create_label_table(FILE *src);
-
-void tokenise_and_assemble(char *  instruction, Map* table, FILE *dst);
-
-uint32_t and(char  *instruction);
-
-uint32_t eor(char  *instruction);
-
-uint32_t sub(char  *instruction);
-
-uint32_t rsb(char  *instruction);
-
-uint32_t add(char  *instruction);
-
-uint32_t orr(char  *instruction);
-
-uint32_t set_compute_result(char  *instruction, uint32_t machineCode);
-
-uint32_t mov(char  *instruction);
-
-uint32_t tst(char  *instruction);
-
-uint32_t teq(char  *instruction);
-
-uint32_t cmp(char  *instruction);
-
-uint32_t set_changes_cpsr(char  *instruction, uint32_t machineCode);
-
-uint32_t data_processing(char  * instruction, uint32_t machineCode);
-
-uint32_t set_operand2(char  *instruction, uint32_t machineCode);
+#include "assemble.h"
 
 int main(int argc, char **argv) {
   assert(argc == 3);
@@ -305,15 +269,17 @@ uint32_t data_processing(char  *instruction, uint32_t machineCode) {
 }
 
 uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
-  char *operand2 = strtok(instruction, "\n");
-  if (operand2[0] ==  '#') {
+  
+  char *operand2 = strtok(instruction, "\n"); 
+  while (*operand2 == ' ') {
+    operand2++;
+  }
+  if (*operand2 ==  '#') {
    
     machineCode = set_bit(machineCode, 25); // set I bit (immediate value)
     int value;
     operand2++;
-    
-    if (operand2[1] == '0') { //value is in hex
-    
+    if (*operand2 == '0') { //value is in hex
       value = (int) strtol(operand2, NULL, 0);
     }
     
@@ -322,7 +288,7 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
       value = (int) strtol(operand2, NULL, 10);
     }
     
-    if (value < 255) { //immediate value fits in 8 bits
+    if (value < 256) { //immediate value fits in 8 bits
     
       machineCode = set_field(machineCode, value, 7, 8);//put value in bits 7..0
       machineCode = set_field(machineCode, 0, 11, 4); //rotate bits are 0
