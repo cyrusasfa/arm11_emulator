@@ -37,6 +37,7 @@ void decode(int cycle, uint32_t *instr, struct pipeline *pipeline,
 
   unsigned int cond_code = extract_bits(*instr, 28,4);
   if (!(condition(cond_code, *mach))) {
+    pipeline->decoded = &do_nothing;
     return;
   }
 

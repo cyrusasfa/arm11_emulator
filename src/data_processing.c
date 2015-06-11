@@ -158,7 +158,7 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
   if (!imm && read_bit(instr,4)) {
     int reg = extract_bits(instr, 0, 4);
     int shift = extract_bits(instr, 5, 2);
-    int sregv = extract_bits(mach->registers[extract_bits(instr, 8, 4)], 0, 8);
+    int sregv = extract_bits(mach->registers[extract_bits(instr, 8, 4)], 0, 7);
     o2 = (*shift_ptr[shift]) (mach->registers[reg], sregv, mach); 
   } 
   if (!imm && !read_bit(instr, 4)) {

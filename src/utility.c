@@ -54,7 +54,10 @@ uint32_t lsl(int reg, int shiftvalue, struct machine_state *mach) {
 uint32_t lsr(int reg, int shiftvalue, struct machine_state *mach) {
   if (shiftvalue != 0) {
     mach->shifter_carryout = read_bit(reg, shiftvalue - 1);
-    return reg >> shiftvalue;
+    uint32_t res = reg >> shiftvalue;
+    res = clear_bit(res,31);
+    res = clear_bit(res,30);
+    return res;
   } else {
     return reg;
   }

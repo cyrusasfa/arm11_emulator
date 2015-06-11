@@ -90,7 +90,6 @@ int main(int argc, char **argv) {
     pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr, pip_ptr);
     decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
     fetch(pc, pip_ptr, mach_ptr);
-    printf("PC : %x, FETCHED : %x\n", pc, *(pip_ptr->fetched));
     pc += 4;
     cycle ++;
   } 
