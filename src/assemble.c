@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
     }
    
     else {
-      
       tokenise_and_assemble(instruction, label_table, dst);
     }
   }
@@ -90,6 +89,7 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
  
   char *mnemonic = strtok(instruction, " ");
   instruction = strtok(NULL, "\0");
+  remove_spaces(instruction);
   
   
   uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)](instruction, table);
@@ -117,21 +117,18 @@ Map *create_label_table(FILE *src) {
 uint32_t lsl(char *instruction, Map* symbol_table) {
   
   char * new = (char *) malloc(MAX_LENGTH * sizeof(char));
-  if (copy == NULL) {
+  if (new == NULL) {
       perror("malloc problem in lsl");
       exit(EXIT_FAILURE);
   }
   
-  while(*instruction == ' ') {
-      instruction++;
-  }
-  
-  strncpy(new, "mov", 3);
   char * Rn = strtok(instruction, ",");
-  
-  while(*instruction == ' ') {
-      instruction++;
-  }
-  
-  
+  instruction = strtok(NULL, "\n");
+  strcpy(new, Rn);
+  strcat(new, ",");
+  strcat(new, Rn);
+  strcat(new, ",lsl");
+  strcat(new, instruction);
+  strcat(new, "\n");
+  return mov(new, symbol_table);
 }
