@@ -79,10 +79,6 @@ void rsb(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 }
 
 void add(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  // printf("ARG : 0 %i\n", args[0]);
-  // printf("ARG : 1 %i\n", args[1]);
-  // printf("ARG : 2 %i\n", args[2]);
-  // printf("ARG : 3 %i\n", args[3]);
   uint32_t res = mach->registers[args[0]] + args[1];
   //Overflow check
   if(mach->registers[args[0]] > 0 && args[1] > ((pow(2,31) - 1) - mach->registers[args[0]])) {
@@ -152,7 +148,6 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
   shift_ptr[3] = ror;
 
   if (imm) {
-    //printf("%i before ror", extract_bits(instr, 0, 4));
     o2 = ror(extract_bits(instr,0, 8), 2 * extract_bits(instr, 8, 4), mach);
   } 
   if (!imm && read_bit(instr,4)) {
@@ -162,7 +157,6 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
     o2 = (*shift_ptr[shift]) (mach->registers[reg], sregv, mach); 
   } 
   if (!imm && !read_bit(instr, 4)) {
-    //printf("Got to this branch \n");
     int reg = extract_bits(instr, 0, 4);
     int shift = extract_bits(instr, 5, 2);
     uint8_t val = extract_bits(instr, 7, 5);
@@ -174,7 +168,6 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
   *(pip->decoded_args + 1) = o2;
   *(pip->decoded_args + 2) = rd;
   *(pip->decoded_args + 3) = flagS;
-  //printf("%i, dest register as about to be returned\n", pip->decoded_args[2]);
 }
 
 
@@ -195,7 +188,6 @@ void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state
   
   process_args(instr, pip, mach);
   pip->decoded = op_ptrs[extract_bits(instr, 21, 4)];
-  //printf("%u passed dest reg\n", pip->decoded_args[2]);
 }
 
 

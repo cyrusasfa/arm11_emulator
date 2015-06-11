@@ -81,14 +81,12 @@ uint32_t asr(int reg, int shiftvalue, struct machine_state *mach) {
 
 uint32_t ror(int reg, int shiftvalue, struct machine_state *mach) {
   if (shiftvalue != 0) {
-    //printf("ror : non zero shift\n");
     mach->shifter_carryout = read_bit(reg, shiftvalue-1);
     int firstYbits = reg << (32 - shiftvalue);
     int lastbits   = reg >> shiftvalue;
     return (firstYbits | lastbits);
   } else {
     uint32_t ret = reg;
-    //printf("%i shift is 0 ror\n", ret);
     return ret;
   }   
 }
