@@ -10,6 +10,8 @@
 #include "assemble.h"
 #include "data_processing_a.h"
 
+uint32_t lsl(char *instruction, Map* symbol_table);
+
 int main(int argc, char **argv) {
   assert(argc == 3);
   
@@ -42,6 +44,8 @@ int main(int argc, char **argv) {
     }
   }
   
+  free(label_table);    
+  
   fclose(src);
   fclose(dst);
   
@@ -70,18 +74,18 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   op_ptrs[9]  = &cmp;
   //op_ptrs[10] = &mul;
   //op_ptrs[11] = &mla;
-  /*op_ptrs[12] = &ldr;
-  op_ptrs[13] = &str;
-  op_ptrs[14] = &beq;
-  op_ptrs[15] = &bne;
-  op_ptrs[16] = &bge;
-  op_ptrs[17] = &blt;
-  op_ptrs[18] = &bgt; 
-  op_ptrs[19] = &ble;
-  op_ptrs[20] = &b;
+  //op_ptrs[12] = &ldr;
+  //op_ptrs[13] = &str;
+  //op_ptrs[14] = &beq;
+  //op_ptrs[15] = &bne;
+  //op_ptrs[16] = &bge;
+  //op_ptrs[17] = &blt;
+  //op_ptrs[18] = &bgt; 
+  //op_ptrs[19] = &ble;
+  //op_ptrs[20] = &b;
   op_ptrs[21] = &lsl;
   op_ptrs[22] = &andeq;
-  */
+  
 
  
   char *mnemonic = strtok(instruction, " ");
@@ -110,3 +114,24 @@ Map *create_label_table(FILE *src) {
   return result;
 }
 
+uint32_t lsl(char *instruction, Map* symbol_table) {
+  
+  char * new = (char *) malloc(MAX_LENGTH * sizeof(char));
+  if (copy == NULL) {
+      perror("malloc problem in lsl");
+      exit(EXIT_FAILURE);
+  }
+  
+  while(*instruction == ' ') {
+      instruction++;
+  }
+  
+  strncpy(new, "mov", 3);
+  char * Rn = strtok(instruction, ",");
+  
+  while(*instruction == ' ') {
+      instruction++;
+  }
+  
+  
+}

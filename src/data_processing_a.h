@@ -31,6 +31,8 @@ uint32_t teq(char *instruction, Map* symbol_table);
 
 uint32_t cmp(char *instruction, Map* symbol_table);
 
+uint32_t andeq(char *instruction, Map* symbol_table);
+
 uint32_t set_changes_cpsr(char  *instruction, uint32_t machineCode);
 
 uint32_t data_processing(char  * instruction, uint32_t machineCode);

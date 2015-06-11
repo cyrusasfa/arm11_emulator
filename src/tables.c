@@ -25,8 +25,21 @@ int mnemonic_ints[23] = {
   19, 20, 21, 22 
 };
 
+
+char *shift_names[4] = {
+  "lsl", "lsr", "asr", "ror"
+};
+
+int shift_ints[4] = {
+  0, 1, 2, 3
+};
+
+
+
 // Set table of register name to number mappings
 Map registers = {register_names, register_numbers, 16, 16};
 
 // Set table of mnemonic to int mappings
 Map mnemonic_table = {mnemonics_strings, mnemonic_ints, 23, 23};
+
+Map shift_table = {shift_names, shift_ints, 4, 4};

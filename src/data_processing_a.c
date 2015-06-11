@@ -143,6 +143,10 @@ uint32_t cmp(char *instruction, Map* symbol_table) {
   return set_changes_cpsr(instruction, result);
 }
 
+uint32_t andeq(char *instruction, Map* symbol_table) {
+  return 0;
+}
+
 uint32_t set_changes_cpsr(char  *instruction, uint32_t machineCode) {
   
   // sets the generic bits of dataprocessing instructions that don't compute a
@@ -176,7 +180,6 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
     operand2++;
   }
   if (*operand2 ==  '#') {
-   
     machineCode = set_bit(machineCode, 25); // set I bit (immediate value)
     int value;
     operand2++;
@@ -215,9 +218,52 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
     }
   }
   else {// this case is optional shifted register
-    int reg = look_up(&registers, operand2);
-    machineCode = set_field(machineCode, reg, 3, 4); 
-  }
+      
+    int reg = look_up(&registers, strtok(operand2, ","));
+    machineCode = set_field(machineCode, reg, 3, 4);
+    
+    operand2 = strtok(NULL, "\n"); 
+    
+    if (operand2 == NULL) {
+        return machineCode;
+    }
+    
+    printf("operand 2 is %s\n", operand2);
+    while (*operand2 == ' ') {
+      printf("here\n");
+      operand2++;
+    }     
+    printf("here\n");
+    int shift_code = look_up(&shift_table, strtok(operand2, " "));
+    printf("here\n");
+    machineCode = set_field(machineCode, shift_code, 6, 2);
+    
+    operand2 = strtok(NULL, "\n");
+    printf("here\n");
+    if (*operand2 ==  '#') {
+      
+      int value;
+      operand2++;
+      
+      if (*operand2 == '0') { //value is in hex
+        value = (int) strtol(operand2, NULL, 0);
+      } 
+    
+      else { // value is decimal
+    
+        value = (int) strtol(operand2, NULL, 10);
+      }
+          machineCode = clear_bit(machineCode, 4);
+          machineCode = set_field(machineCode, value, 11, 5);
+    }
+    
+    else {
+      reg = look_up(&registers, strtok(operand2, "\n"));
+      machineCode = set_bit(machineCode, 4);
+      machineCode = clear_bit(machineCode, 7);
+      machineCode = set_field(machineCode, reg, 11, 4);
+    }
+  }    
     return machineCode;
 }
 
