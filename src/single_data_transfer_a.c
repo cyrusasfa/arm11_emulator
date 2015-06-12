@@ -129,18 +129,73 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
       machineCode = set_field(machineCode, Rn, 19, 4); // base reg here
       machineCode = clear_bit(machineCode, 24) ; // P bit is 0
       machineCode = set_bit(machineCode, 23); //U bit is set
-      machineCode = clear_bit(machineCode, 25); // I bit is cleared
       int offset;
       instruction++;
-        if (*temp == '0') { //value is in hex
-          offset = (int) strtol(temp, NULL, 0);
-        } 
-    
-        else { // value is decimal
-         offset = (int) strtol(temp, NULL, 10);
+        if (*temp == '-') {
+            machineCode = clear_bit(machineCode,23);// U bit is cleared
+            temp++;
         }
-    }
-  } 
+        else if (*temp == '+') {
+            temp++;
+        }
+        if (*temp == '#') { // constant
+            
+          if (*temp == '0') { //value is in hex
+            offset = (int) strtol(temp, NULL, 0);
+          } 
+    
+          else { // value is decimal
+           offset = (int) strtol(temp, NULL, 10);
+          }
+        }
+        
+        else {
+        /*  int reg = look_up(&registers, strtok(operand2, ","));
+          machineCode = set_field(machineCode, reg, 3, 4);
+    
+          operand2 = strtok(NULL, "\n"); 
+    
+          if (operand2 == NULL) {
+            return machineCode;
+          }
+          char shift[3];
+          for (int i = 0; i < 3; i++) {
+            shift[i] = *operand2;
+            operand2++;
+          }
+          printf("%s\n", shift);
+          int shift_code = look_up(&shift_table, shift);
+          machineCode = set_field(machineCode, shift_code, 6, 2);
+          operand2 = strtok(operand2, "\n");
+    
+          if (*operand2 ==  '#') {
+
+
+            int value;
+            operand2++;
+      
+            if (*operand2 == '0') { //value is in hex
+              value = (int) strtol(operand2, NULL, 0);
+            } 
+    
+            else { // value is decimal
+    
+              value = (int) strtol(operand2, NULL, 10);
+            }
+            machineCode = clear_bit(machineCode, 4);
+            machineCode = set_field(machineCode, value, 11, 5);
+          }
+    
+          else { 
+
+            reg = look_up(&registers, strtok(operand2, "\n"));
+            machineCode = set_bit(machineCode, 4);
+            machineCode = clear_bit(machineCode, 7);
+            machineCode = set_field(machineCode, reg, 11, 4);  
+          }*/
+        }
+     } 
+   }
   machineCode = set_field(machineCode, look_up(&registers, Rd), 15, 4);
   return machineCode;
 }
