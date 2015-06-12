@@ -13,10 +13,10 @@
 uint32_t and(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to and
-  
   uint32_t result = 0;
-  
-  result = set_field(result, 0, 24, 4); // opcode for and is 0000
+  const int and_opcode = 0; // and opcode is 0000
+
+  result = set_field(result, and_opcode, OPCODE_END, OPCODE_LENGTH);
   
   return set_compute_result(instruction, result);
 }
@@ -26,8 +26,9 @@ uint32_t eor(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to eor
   
   uint32_t result = 0;
+  const int eor_opcode = 1; // eor opcode is 0001
   
-  result = set_field(result, 1, 24, 4); // opcode for eor is 0001
+  result = set_field(result, eor_opcode, OPCODE_END, OPCODE_LENGTH); 
   
   return set_compute_result(instruction, result);
 }
@@ -37,8 +38,9 @@ uint32_t sub(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to sub
   
   uint32_t result = 0;
+  const int sub_opcode = 2; // sub opcode is 0010
   
-  result = set_field(result, 2, 24, 4); // opcode for sub is 0010
+  result = set_field(result, sub_opcode, OPCODE_END, OPCODE_LENGTH); 
   
   return set_compute_result(instruction, result);
 }
@@ -48,8 +50,9 @@ uint32_t rsb(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to rsb
   
   uint32_t result = 0;
+  const int rsb_opcode = 3; // rsb opcode is 0011
   
-  result = set_field(result, 3, 24, 4); // opcode for rsb is 0011
+  result = set_field(result, rsb_opcode, OPCODE_END, OPCODE_LENGTH); 
   
   return set_compute_result(instruction, result);
 }
@@ -59,8 +62,9 @@ uint32_t add(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to add
   
   uint32_t result = 0;
+  const int add_opcode = 4; // add opcode is 0100
   
-  result = set_field(result, 4, 24, 4); // opcode for add is 0100
+  result = set_field(result, add_opcode, OPCODE_END, OPCODE_LENGTH);
   
   return set_compute_result(instruction, result);
 }
@@ -70,8 +74,9 @@ uint32_t orr(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to orr
   
   uint32_t result = 0;
+  const int orr_opcode = 12; // opcode for sub is 1100
   
-  result = set_field(result, 12, 24, 4); // opcode for sub is 1100
+  result = set_field(result, orr_opcode, OPCODE_END, OPCODE_LENGTH);
   
   return set_compute_result(instruction, result);
 }
@@ -82,12 +87,16 @@ uint32_t set_compute_result(char *instruction, uint32_t machineCode) {
   
   const int Rd = look_up(&registers, strtok(instruction, ","));
   const int Rn = look_up(&registers, strtok(NULL, ",")); 
+  const int bit_S = 20;
+  const int rn_end = 19;
+  const int rd_end = 15;
+  const int r_length = 4;
   
   instruction = strtok(NULL, "\0");
   
-  machineCode = clear_bit(machineCode,20); //all of them update cpsr
-  machineCode = set_field(machineCode, Rn, 19, 4); //Rn register goes here
-  machineCode = set_field(machineCode, Rd, 15, 4); // Rd register goes here
+  machineCode = clear_bit(machineCode, bit_S); //all of them update cpsr
+  machineCode = set_field(machineCode, Rn, rn_end, r_length); //Rn register
+  machineCode = set_field(machineCode, Rd, rd_end, r_length); // Rd register 
   
   return data_processing(instruction, machineCode);
 }
@@ -97,15 +106,18 @@ uint32_t mov(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to move
   
   uint32_t result = 0;
-  
-  const int Rd = look_up(&registers, strtok(instruction, ",")); 
-  
-  instruction = strtok(NULL, "\0");
-  result = set_field(result, 13, 24, 4); // opcode for mov is 1101
-  result = clear_bit(result,20); //mov does not update cpsr
-  result = set_field(result, 0, 19, 4); //Rn is ignored by mov
-  result = set_field(result, Rd, 15, 4); // Rd register goes here
-  
+  const int mov_opcode = 13; // mov opcode is 1101
+  const int bit_S = 20;
+  const int rn_end = 19;
+  const int rd_end = 15;
+
+  const int r_length = 4;
+  const int Rd = look_up(&registers, strtok(instruction, ",")); instruction = strtok(NULL, "\0");
+  result = clear_bit(result, bit_S); //mov does not update cpsr
+  result = set_field(result, 0, rn_end, r_length); //Rn is ignored by mov
+  result = set_field(result, Rd, rd_end, r_length); // Rd register goes here
+  result = set_field(result, mov_opcode, OPCODE_END, OPCODE_LENGTH);
+
   return data_processing(instruction, result);
 }
 
@@ -114,8 +126,9 @@ uint32_t tst(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to tst
   
   uint32_t result = 0;
+  const int tst_opcode = 8; // tst opcode is 1000
   
-  result = set_field(result, 8, 24, 4); // opcode for tst is 1000
+  result = set_field(result, tst_opcode, OPCODE_END, OPCODE_LENGTH); 
   
   return set_changes_cpsr(instruction, result);
 }
@@ -125,8 +138,9 @@ uint32_t teq(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to teq
   
   uint32_t result = 0;
+  const int teq_opcode = 9; // teq opcode is 1001
   
-  result = set_field(result, 9, 24, 4); // opcode for teq is 1001
+  result = set_field(result, teq_opcode, OPCODE_END, OPCODE_LENGTH); 
   
   return set_changes_cpsr(instruction, result);
 }
@@ -136,8 +150,9 @@ uint32_t cmp(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to tst
   
   uint32_t result = 0;
+  const int cmp_opcode = 10; // cmp opcode is 1010
   
-  result = set_field(result, 10, 24, 4); // opcode for cmp is 1010
+  result = set_field(result, cmp_opcode, OPCODE_END, OPCODE_LENGTH);
   
   return set_changes_cpsr(instruction, result);
 }
@@ -152,12 +167,15 @@ uint32_t set_changes_cpsr(char  *instruction, uint32_t machineCode) {
   // result but still update cpsr
   
   const int Rn = look_up(&registers, strtok(instruction, ",")); 
-  
+  const int rn_end = 19;
+  const int rd_end = 15;
+  const int r_length = 4;
+
   instruction = strtok(NULL, "\0");
   
   machineCode = set_bit(machineCode, 20); //they all update cpsr
-  machineCode = set_field(machineCode, Rn, 19, 4); //Rn register goes here
-  machineCode = set_field(machineCode, 0, 15, 4); //Rd is ignored
+  machineCode = set_field(machineCode, Rn, rn_end, r_length); //Rn register
+  machineCode = set_field(machineCode, 0, rd_end, r_length); //Rd is ignored
   
   return data_processing(instruction, machineCode);
 }
@@ -166,7 +184,9 @@ uint32_t data_processing(char  *instruction, uint32_t machineCode) {
   
   //sets the bits that are generic in all data processing instructions
   
-  machineCode = set_field(machineCode, 14, 31, 4);// cond is always 1110
+  const int cond = 14; // cond is 1110;
+
+  machineCode = set_field(machineCode, cond, COND_END, COND_LENGTH);
   machineCode = set_field(machineCode, 0, 27, 2);// bits 27,26 are always 0
   
   return set_operand2(instruction, machineCode);// sets operand 2
@@ -175,6 +195,8 @@ uint32_t data_processing(char  *instruction, uint32_t machineCode) {
 uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
   
   char *operand2 = strtok(instruction, "\n"); 
+  const int rotate_end = 11;
+  const int rotate_length = 4;
     
   if (*operand2 ==  '#') {
     
@@ -192,8 +214,8 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
     
     if (value < 256) { //immediate value fits in 8 bits
     
-      machineCode = set_field(machineCode, value, 7, 8);//put value in bits 7..0
-      machineCode = set_field(machineCode, 0, 11, 4); //rotate bits are 0
+      machineCode = set_field(machineCode, value, 7, 8);//put value in bits 7-0
+      machineCode = set_field(machineCode, 0, rotate_end, rotate_length); 
       
     }
     
@@ -212,7 +234,7 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
       
       int rotation = (INSTRUCTION_LENGTH - temp) / 2;
       machineCode = set_field(machineCode, value, 7, 8);
-      machineCode = set_field(machineCode, rotation, 11, 4);
+      machineCode = set_field(machineCode, rotation, rotate_end, rotate_length);
     }
     
   }

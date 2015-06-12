@@ -1,18 +1,18 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include "machine.h"
-
-
-#define INST_LGTH (32)
-
 #include <stdint.h>
 #include <stdbool.h>
 
-#define INSTRUCTION_LENGTH (32)
+#define INST_LGTH (32)
 #define INSTRUCTION_LENGTH (32)
 #define COND_LENGTH (4)
 #define COND_END (31)
-#define PC_DIFF 8
+#define OPCODE_LENGTH (4)
+#define OPCODE_END (24)
+#define PC_DIFF (8)
+#define NUM_MNEMONICS (23)
+
 
 bool read_bit(int instruction, int index);
 

@@ -66,7 +66,7 @@ void write_to_output( uint32_t x) {
 void tokenise_and_assemble(char *instruction, Map* table, int address) {
   
   
-  uint32_t (*op_ptrs[23])(char *, Map*, int);
+  uint32_t (*op_ptrs[NUM_MNEMONICS])(char *, Map*, int);
   op_ptrs[0]  = &add; 
   op_ptrs[1]  = &sub; 
   op_ptrs[2]  = &rsb;
