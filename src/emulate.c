@@ -93,7 +93,19 @@ int main(int argc, char **argv) {
 
   while(pip_ptr->halt == 0) {
     pip_ptr->decoded (pip_ptr->decoded_args, mach_ptr, pip_ptr);
+
+    if(pip_ptr->decoded_args) {
+      free(pip_ptr->decoded_args);
+      pip_ptr->decoded_args = 0;
+    }
+
     decode(cycle, pip_ptr->fetched, pip_ptr, mach_ptr); 
+
+    if(pip_ptr->fetched) {
+      free(pip_ptr->fetched);
+      pip_ptr->fetched = 0;
+    }
+
     fetch(pc, pip_ptr, mach_ptr);
     pc += 4;
     cycle ++;
@@ -101,14 +113,11 @@ int main(int argc, char **argv) {
   
   output_machine_state(mach_ptr);
   
-  free(mach_ptr);
+  
   free(mach_ptr->memory);
   free(mach_ptr->registers);
-
-  if (pip_ptr->decoded_args) {
-    free(pip_ptr->decoded_args);
-  }
-
+  free(mach_ptr);
+  free(pip_ptr->decoded_args);
   free(pip_ptr->fetched);
   free(pip_ptr);
   
