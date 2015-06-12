@@ -9,7 +9,15 @@ void init_table(Map *map) {
   map->size = 0;
   map->space = INIT_SPACE;
   map->keys = (char **)malloc(sizeof(char) * map->space);
+  if (map->keys == NULL) {
+    perror("malloc for keys failed\n");
+    exit(EXIT_FAILURE);
+  }
   map->values = (int *)malloc(sizeof(int) * map->space);
+  if (map->values == NULL) {
+    perror("malloc for values failed\n");
+    exit(EXIT_FAILURE);
+  }
 }
 
 void free_table(Map *map) {
@@ -32,9 +40,17 @@ int look_up(Map *map, char *key) {
 }
 
 void double_space(Map *map) {
-  map->space *= 2;
+  map->space *= 2; 
   map->keys = (char **)realloc(map->keys, sizeof(char) * map->space);
+  if (map->keys == NULL) {
+    perror("realloc for keys failed\n");
+    exit(EXIT_FAILURE);
+  }
   map->values = (int *)realloc(map->values, sizeof(int) * map->space);
+  if (map->values == NULL) {
+    perror("realloc for keys failed\n");
+    exit(EXIT_FAILURE);
+  }
 }
 
 void insert(Map *map, char *key, int value) {
@@ -45,6 +61,10 @@ void insert(Map *map, char *key, int value) {
     map->values[get_index(map, key)] = value;
   } else {
     map->keys[map->size] = malloc(sizeof(char) * MAX_LENGTH);
+    if (map->keys[map->size] == NULL) {
+      perror("malloc failed for key insertion\n");
+      exit(EXIT_FAILURE);
+    }
     strcpy(map->keys[map->size], key);
     map->values[map->size] = value;
     map->size++;
