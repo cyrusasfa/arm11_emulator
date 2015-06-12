@@ -10,15 +10,17 @@
 #include "assemble.h"
 #include "data_processing_a.h"
 
+FILE *dst;
+
 uint32_t lsl(char *instruction, Map* symbol_table, int address);
 
 uint32_t ldr(char *instruction, Map* symbol_table, int address);
 
 uint32_t str(char *instruction, Map* symbol_table, int address);
 
-uint32_t single_data_transfer(char *instruction, uint32_t machineCode);
+uint32_t single_data_transfer(char *instruction, uint32_t machineCode, Map *table, int address);
 
-uint32_t set_address(char *instruction, uint32_t machineCode);
+uint32_t set_address(char *instruction, uint32_t machineCode, Map *table, int address);
 
 int main(int argc, char **argv) {
   assert(argc == 3);
@@ -27,10 +29,9 @@ int main(int argc, char **argv) {
   const char* dstname = argv[2];
   
   FILE *src;
-  FILE *dst;
   
   src = fopen(srcname, "r");
-  dst = fopen(dstname, "wb");
+  dst = fopen(dstname, "w+b");
   
   assert (src != NULL);
   assert (dst != NULL);
@@ -47,7 +48,7 @@ int main(int argc, char **argv) {
     }
    
     else {
-      tokenise_and_assemble(instruction, label_table, dst, (i + 1 - label_table->size) * 4);
+      tokenise_and_assemble(instruction, label_table, (i + 2 - label_table->size) * 4);
     }
   }
   
@@ -60,12 +61,12 @@ int main(int argc, char **argv) {
 }
 
 //writes an int (instruction) to the binary file;
-void write_to_output(FILE *dst, uint32_t x) {
+void write_to_output( uint32_t x) {
   fwrite(&x, sizeof(x), 1, dst);
 }
 
 //breaks an instruction into it's different parts and creates symbol table
-void tokenise_and_assemble(char *instruction, Map* table, FILE *dst, int address) {
+void tokenise_and_assemble(char *instruction, Map* table, int address) {
   
   
   uint32_t (*op_ptrs[23])(char *, Map*, int);
@@ -100,7 +101,7 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst, int address
   remove_spaces(instruction);
   uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)]
        (instruction, table,address);
-  write_to_output(dst, machinecode);
+  write_to_output(machinecode);
 }
 
 Map *create_label_table(FILE *src) {
@@ -109,14 +110,15 @@ Map *create_label_table(FILE *src) {
   init_table(result);
   
   char line[MAX_LENGTH];
-  
-  for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
+  int i;
+  for (i = 0; fgets(line, MAX_LENGTH, src); i++) {
     
     if (strchr(line, ':')) {
      
       insert(result, strtok(line, ":"), (i - result->size) * 4);
     }
   }
+  insert(result, "num_lines", i);
   fseek(src, 0, SEEK_SET);
   return result;
 }
@@ -147,7 +149,7 @@ uint32_t ldr(char *instruction, Map* symbol_table, int address) {
   uint32_t result = 0;
   result = set_bit(result, 20); //the L bit is set
   
-  result = single_data_transfer(instruction, result);
+  result = single_data_transfer(instruction, result, symbol_table, address);
   return result;
 }
 
@@ -156,35 +158,34 @@ uint32_t str(char *instruction, Map* symbol_table, int address) {
   uint32_t result = 0;
   result = clear_bit(result, 20); //the L bit is cleared
   
-  result = single_data_transfer(instruction, result);
+  result = single_data_transfer(instruction, result, symbol_table, address);
   return result;
 }
 
-uint32_t single_data_transfer(char *instruction, uint32_t machineCode) {
+uint32_t single_data_transfer(char *instruction, uint32_t machineCode, Map *table, int address) {
   //sets the generic bits in all single data transfer instructions
   machineCode = set_field(machineCode, 14, 31, 4); // cond is 1110
   machineCode = set_field(machineCode, 1, 27, 2); // bits 27-26 are 01
   machineCode = set_field(machineCode, 0, 23, 2); // bits 23-22 are 00
-  machineCode = set_address(instruction, machineCode);
+  machineCode = set_address(instruction, machineCode, table, address);
   return machineCode;
 }
 
-uint32_t set_address(char *instruction, uint32_t machineCode) {
+uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int address) {
     printf("%s\n", instruction);
     //sets the bits representing address
     char *Rd = strtok(instruction, ","); 
     instruction = strtok(NULL, "\0");
   if (*instruction == '=') { // constant case
-    machineCode = clear_bit(machineCode, 20);
-    int value;
+    uint32_t value;
     instruction++;
     
     if (*instruction == '0') { //value is in hex
-      value = (int) strtol(instruction, NULL, 0);
+      value = (uint32_t) strtol(instruction, NULL, 0);
     } 
     
     else { // value is decimal
-      value = (int) strtol(instruction, NULL, 10);
+      value = (uint32_t) strtol(instruction, NULL, 10);
     }
     
     if (value < 256) {
@@ -203,7 +204,23 @@ uint32_t set_address(char *instruction, uint32_t machineCode) {
 
     }
     else {
-    //TODO IMPLEMENT THIS CASE
+      int pos = ftell(dst);
+      int fs = fseek(dst, look_up(table, "num_lines") * 4, SEEK_END);
+      int adress_val = ftell(dst);
+      printf("POS : %i\n", adress_val);
+      printf("%d\n", fs);
+      write_to_output(value);
+      fseek(dst, pos, SEEK_SET);
+      printf("num lines is%d\n",look_up(table, "num_lines"));
+      printf("address %d\n", address);
+      int offset = (adress_val - (table->size - 2) * 4) - address - PC_DIFF ;
+      printf("offset%d\n", offset);
+      machineCode = set_field(machineCode, 15, 19, 4); //base reg is PC and goes here
+      machineCode = set_bit(machineCode, 24); // P bit is set
+      machineCode = clear_bit(machineCode, 25); // I bit is cleared
+      machineCode = set_bit(machineCode, 23); // U bit is set
+      machineCode = set_field(machineCode, offset, 11, 12);
+      insert(table, "num_lines", look_up(table, "num_lines") + 1);
     }
   }
   
@@ -235,6 +252,7 @@ uint32_t set_address(char *instruction, uint32_t machineCode) {
     }
     else // this is post index
     {
+      
     }
   } 
   machineCode = set_field(machineCode, look_up(&registers, Rd), 15, 4);

@@ -23,17 +23,12 @@ void free_table(Map *map) {
 
 int look_up(Map *map, char *key) {
   // return 0 if not found
-  int pos = -1;
-  for (int i = 0; i < map->size; i++) {
-    if (strcmp(map->keys[i], key) == 0) {
-  	  pos = i;
-  	}
+  int index = get_index(map, key);
+  if (index == -1) {
+    printf("Key not in map: %s\n", key);
+    return NOT_FOUND;
   }
-  if (pos == -1) {
-  	printf("Key not in map: %s\n", key);
-  	return NOT_FOUND;
-  }
-  return map->values[pos];
+  return map->values[index];
 }
 
 void double_space(Map *map) {
@@ -46,8 +41,27 @@ void insert(Map *map, char *key, int value) {
   if (map->space <= map->size) {
   	double_space(map); // reallocates space for the list
   }
-  map->keys[map->size] = malloc(sizeof(char) * MAX_LENGTH);
-  strcpy(map->keys[map->size], key);
-  map->values[map->size] = value;
-  map->size++;
+  if (contains(map, key)) {
+    map->values[get_index(map, key)] = value;
+  } else {
+    map->keys[map->size] = malloc(sizeof(char) * MAX_LENGTH);
+    strcpy(map->keys[map->size], key);
+    map->values[map->size] = value;
+    map->size++;
+  }
+}
+
+int get_index(Map *map, char *key) {
+  int index = -1;
+  for (int i = 0; i < map->size; i++) {
+    if (strcmp(map->keys[i], key) == 0) {
+      index = i;
+    }
+  }
+  return index;
+}
+
+int contains(Map *map, char *key) {
+  int res = get_index(map, key);
+  return res != NOT_FOUND;
 }

@@ -16,11 +16,11 @@
 #define COND_END (31)
 #define PC_DIFF 8
 
-void write_to_output(FILE *dst, uint32_t x);
+void write_to_output(uint32_t x);
 
 Map *create_label_table(FILE *src);
 
-void tokenise_and_assemble(char *  instruction, Map* table, FILE *dst, int address);
+void tokenise_and_assemble(char *  instruction, Map* table, int address);
 
 uint32_t mul(char *instr, Map *symbol_table, int address);
 

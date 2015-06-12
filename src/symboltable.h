@@ -19,5 +19,7 @@ int look_up(Map *map, char *key);
 void insert(Map *map, char *key, int value);
 void double_space(Map *map);
 void free_table(Map *map);
+int get_index(Map *map, char *key);
+int contains(Map *map, char *key);
 
 #endif
