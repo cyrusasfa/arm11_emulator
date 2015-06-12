@@ -48,7 +48,7 @@ uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state
     arg2 += 4;
   }
   int32_t arr[2] = {instruction.rd, arg2};
-  for (int i=0; i < 3; i++) {
+  for (int i=0; i < 2; i++) {
     *(ret + i) = arr[i];
   }
 
