@@ -268,3 +268,25 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
 
 }
 
+uint32_t lsl(char *instruction, Map* symbol_table, int address) {
+  
+  char * new = (char *) malloc(MAX_LENGTH * sizeof(char));
+  if (new == NULL) {
+      perror("malloc problem in lsl");
+      exit(EXIT_FAILURE);
+  }
+  
+  char * Rn = strtok(instruction, ",");
+  instruction = strtok(NULL, "\n");
+  strcpy(new, Rn);
+  strcat(new, ",");
+  strcat(new, Rn);
+  strcat(new, ",lsl");
+  strcat(new, instruction);
+  strcat(new, "\n");
+  uint32_t result = mov(new, symbol_table, 0);
+  free(new);
+  return result;
+}
+
+

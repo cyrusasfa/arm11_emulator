@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define INSTRUCTION_LENGTH (32)
+#define INSTRUCTION_LENGTH (32)
+#define COND_LENGTH (4)
+#define COND_END (31)
+#define PC_DIFF 8
+
 bool read_bit(int instruction, int index);
 
 unsigned int extract_bits(int instruction, int start, int length);

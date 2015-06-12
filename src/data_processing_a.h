@@ -33,6 +33,8 @@ uint32_t cmp(char *instruction, Map* symbol_table, int address);
 
 uint32_t andeq(char *instruction, Map* symbol_table, int address);
 
+uint32_t lsl(char *instruction, Map* symbol_table, int address);
+
 uint32_t set_changes_cpsr(char  *instruction, uint32_t machineCode);
 
 uint32_t data_processing(char  * instruction, uint32_t machineCode);
