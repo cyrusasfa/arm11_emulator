@@ -10,7 +10,7 @@
 #include "assemble.h"
 #include "data_processing_a.h"
 
-uint32_t and(char *instruction, Map* symbol_table) {
+uint32_t and(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to and
   
@@ -21,7 +21,7 @@ uint32_t and(char *instruction, Map* symbol_table) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t eor(char *instruction, Map* symbol_table) {
+uint32_t eor(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to eor
   
@@ -32,7 +32,7 @@ uint32_t eor(char *instruction, Map* symbol_table) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t sub(char *instruction, Map* symbol_table) {
+uint32_t sub(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to sub
   
@@ -43,7 +43,7 @@ uint32_t sub(char *instruction, Map* symbol_table) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t rsb(char *instruction, Map* symbol_table) {
+uint32_t rsb(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to rsb
   
@@ -54,7 +54,7 @@ uint32_t rsb(char *instruction, Map* symbol_table) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t add(char *instruction, Map* symbol_table) {
+uint32_t add(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to add
   
@@ -65,7 +65,7 @@ uint32_t add(char *instruction, Map* symbol_table) {
   return set_compute_result(instruction, result);
 }
 
-uint32_t orr(char *instruction, Map* symbol_table) {
+uint32_t orr(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to orr
   
@@ -92,7 +92,7 @@ uint32_t set_compute_result(char *instruction, uint32_t machineCode) {
   return data_processing(instruction, machineCode);
 }
 
-uint32_t mov(char *instruction, Map* symbol_table) {
+uint32_t mov(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to move
   
@@ -109,7 +109,7 @@ uint32_t mov(char *instruction, Map* symbol_table) {
   return data_processing(instruction, result);
 }
 
-uint32_t tst(char *instruction, Map* symbol_table) {
+uint32_t tst(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to tst
   
@@ -120,7 +120,7 @@ uint32_t tst(char *instruction, Map* symbol_table) {
   return set_changes_cpsr(instruction, result);
 }
 
-uint32_t teq(char *instruction, Map* symbol_table) {
+uint32_t teq(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to teq
   
@@ -131,7 +131,7 @@ uint32_t teq(char *instruction, Map* symbol_table) {
   return set_changes_cpsr(instruction, result);
 }
 
-uint32_t cmp(char *instruction, Map* symbol_table) {
+uint32_t cmp(char *instruction, Map* symbol_table, int address) {
   
   //sets the bits specific to tst
   
@@ -142,7 +142,7 @@ uint32_t cmp(char *instruction, Map* symbol_table) {
   return set_changes_cpsr(instruction, result);
 }
 
-uint32_t andeq(char *instruction, Map* symbol_table) {
+uint32_t andeq(char *instruction, Map* symbol_table, int address) {
   return 0;
 }
 

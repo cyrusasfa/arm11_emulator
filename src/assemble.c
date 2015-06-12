@@ -10,11 +10,11 @@
 #include "assemble.h"
 #include "data_processing_a.h"
 
-uint32_t lsl(char *instruction, Map* symbol_table);
+uint32_t lsl(char *instruction, Map* symbol_table, int address);
 
-uint32_t ldr(char *instruction, Map* symbol_table);
+uint32_t ldr(char *instruction, Map* symbol_table, int address);
 
-uint32_t str(char *instruction, Map* symbol_table);
+uint32_t str(char *instruction, Map* symbol_table, int address);
 
 uint32_t single_data_transfer(char *instruction, uint32_t machineCode);
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     }
    
     else {
-      tokenise_and_assemble(instruction, label_table, dst);
+      tokenise_and_assemble(instruction, label_table, dst, (i + 1 - label_table->size) * 4);
     }
   }
   
@@ -65,10 +65,10 @@ void write_to_output(FILE *dst, uint32_t x) {
 }
 
 //breaks an instruction into it's different parts and creates symbol table
-void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
+void tokenise_and_assemble(char *instruction, Map* table, FILE *dst, int address) {
   
   
-  uint32_t (*op_ptrs[23])(char *, Map*);
+  uint32_t (*op_ptrs[23])(char *, Map*, int);
   op_ptrs[0]  = &add; 
   op_ptrs[1]  = &sub; 
   op_ptrs[2]  = &rsb;
@@ -79,17 +79,17 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   op_ptrs[7]  = &tst;
   op_ptrs[8]  = &teq;
   op_ptrs[9]  = &cmp;
-  //op_ptrs[10] = &mul;
-  //op_ptrs[11] = &mla;
+  op_ptrs[10] = &mul;
+  op_ptrs[11] = &mla;
   op_ptrs[12] = &ldr;
   op_ptrs[13] = &str;
-  //op_ptrs[14] = &beq;
-  //op_ptrs[15] = &bne;
-  //op_ptrs[16] = &bge;
-  //op_ptrs[17] = &blt;
-  //op_ptrs[18] = &bgt; 
-  //op_ptrs[19] = &ble;
-  //op_ptrs[20] = &b;
+  op_ptrs[14] = &beq;
+  op_ptrs[15] = &bne;
+  op_ptrs[16] = &bge;
+  op_ptrs[17] = &blt;
+  op_ptrs[18] = &bgt; 
+  op_ptrs[19] = &ble;
+  op_ptrs[20] = &b;
   op_ptrs[21] = &lsl;
   op_ptrs[22] = &andeq;
   
@@ -98,7 +98,8 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   char *mnemonic = strtok(instruction, " ");
   instruction = strtok(NULL, "\0");
   remove_spaces(instruction);
-  uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)](instruction, table);
+  uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)]
+       (instruction, table,address);
   write_to_output(dst, machinecode);
 }
 
@@ -120,7 +121,7 @@ Map *create_label_table(FILE *src) {
   return result;
 }
 
-uint32_t lsl(char *instruction, Map* symbol_table) {
+uint32_t lsl(char *instruction, Map* symbol_table, int address) {
   
   char * new = (char *) malloc(MAX_LENGTH * sizeof(char));
   if (new == NULL) {
@@ -136,12 +137,12 @@ uint32_t lsl(char *instruction, Map* symbol_table) {
   strcat(new, ",lsl");
   strcat(new, instruction);
   strcat(new, "\n");
-  uint32_t result = mov(new, symbol_table);
+  uint32_t result = mov(new, symbol_table, 0);
   free(new);
   return result;
 }
 
-uint32_t ldr(char *instruction, Map* symbol_table) {
+uint32_t ldr(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to ldr
   uint32_t result = 0;
   result = set_bit(result, 20); //the L bit is set
@@ -150,7 +151,7 @@ uint32_t ldr(char *instruction, Map* symbol_table) {
   return result;
 }
 
-uint32_t str(char *instruction, Map* symbol_table) {
+uint32_t str(char *instruction, Map* symbol_table, int address) {
   //sets the bits specific to str
   uint32_t result = 0;
   result = clear_bit(result, 20); //the L bit is cleared
@@ -197,7 +198,7 @@ uint32_t set_address(char *instruction, uint32_t machineCode) {
       char val[4];
       sprintf(val, "%d\n", value);
       strcat(new, val);
-      uint32_t result = mov(new, NULL);
+      uint32_t result = mov(new, NULL, 0);
       return result;
 
     }
@@ -237,5 +238,120 @@ uint32_t set_address(char *instruction, uint32_t machineCode) {
     }
   } 
   machineCode = set_field(machineCode, look_up(&registers, Rd), 15, 4);
+  return machineCode;
+}
+
+uint32_t mul(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0; 
+  const int rd = look_up(&registers, strtok(instr, ","));
+  const int rm = look_up(&registers, strtok(NULL, ","));
+  const int rs = look_up(&registers, strtok(NULL, "\n"));
+  return multiply(rd, rm, rs, result);
+}
+
+uint32_t mla(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int bit_A = 21;
+  const int rn_end = 15; // rn end bit
+  const int r_length = 4; // register length 
+  const int rd = look_up(&registers, strtok(instr, ","));
+  const int rm = look_up(&registers, strtok(NULL, ","));
+  const int rs = look_up(&registers, strtok(NULL, ","));
+  const int rn = look_up(&registers, strtok(NULL, "\n"));
+
+  result = set_bit(result, bit_A); // set bit A
+  result = set_field(result, rn, rn_end, r_length); // set Rn field 
+  return multiply(rd, rm, rs, result);
+}
+
+uint32_t multiply(int rd, int rm, int rs, uint32_t machineCode) {
+  // S-bit already 0 and A-bit will be 0 for "mul"
+  const int cond_value = 14;
+  const int rd_end = 19; // rd end bit
+  const int rs_end = 11; // rs end bit
+  const int rm_end = 3; // rm end bit
+  const int r_length = 4; // register length 
+
+  // set opcode to 1110
+  machineCode = set_field(machineCode, cond_value, COND_END, COND_LENGTH);
+
+  machineCode = set_field(machineCode, rd, rd_end, r_length); // set Rd field
+  machineCode = set_field(machineCode, rs, rs_end, r_length); // set Rs field
+  machineCode = set_field(machineCode, rm, rm_end, r_length); // set Rm field
+  machineCode = set_field(machineCode, 9, 7, 4); // set bit field 4-7 to 1001
+  return machineCode;
+}
+
+uint32_t beq(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  // const int eq = 0;
+  // result = set_field(result, eq, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t bne(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int ne = 1;
+  result = set_field(result, ne, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t bge(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int ge = 10;
+  result = set_field(result, ge, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t blt(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int lt = 11;
+  result = set_field(result, lt, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t bgt(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int gt = 12;
+  result = set_field(result, gt, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t ble(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int le = 13;
+  result = set_field(result, le, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t b(char *instr, Map *symbol_table, int address) {
+  uint32_t result = 0;
+  const int al = 14;
+  result = set_field(result, al, COND_END, COND_LENGTH);
+  return branch(instr, symbol_table, address, result);
+}
+
+uint32_t branch(char *instr, Map *symbol_table, int address, uint32_t machineCode) {
+  instr = strtok(instr, "\n");
+  machineCode = set_field(machineCode, 5, 27, 3); // set bits 25-27 to 101
+
+
+  // need address of current line
+  printf("label is: %s\n", instr);
+
+  int offset = look_up(symbol_table, instr) - address - PC_DIFF;
+  int signed_offset = offset;
+  if (signed_offset < 0) {
+   signed_offset += 4;
+  } 
+  int mask = ((1 << 30) - 1) >> 4;
+  signed_offset &= mask;
+  printf("address is: %x\n", address);
+  printf("offset is: %d\n", offset);
+  signed_offset &= mask;
+  // offset <<= 25;
+  // offset = set_field(offset, offset, 25, 26);
+  signed_offset >>= 2;
+  machineCode |= signed_offset;
   return machineCode;
 }
