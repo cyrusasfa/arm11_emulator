@@ -10,11 +10,11 @@
 #include "execution_cycle.h"
 #include "gpio.h"
 
-#define MEM_SIZE (64*1024)
+#define MEM_SIZE (64 * 1024)
 #define NUM_REGS (17)
 #define REG_SIZE (32)
 #define GPIO_SIZE (5)
-#define pc  (mach_ptr->registers[15]) 
+#define pc (mach_ptr->registers[15]) 
 
 
 void initialize_memories(struct machine_state *machine) {

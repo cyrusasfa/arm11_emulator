@@ -129,7 +129,7 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
       machineCode = set_field(machineCode, Rn, 19, 4); // base reg here
       machineCode = clear_bit(machineCode, 24) ; // P bit is 0
       machineCode = set_bit(machineCode, 23); //U bit is set
-      int offset;
+      //int offset = 0;
       instruction++;
         if (*temp == '-') {
             machineCode = clear_bit(machineCode,23);// U bit is cleared
@@ -141,11 +141,11 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
         if (*temp == '#') { // constant
             
           if (*temp == '0') { //value is in hex
-            offset = (int) strtol(temp, NULL, 0);
+            //offset = (int) strtol(temp, NULL, 0);
           } 
     
           else { // value is decimal
-           offset = (int) strtol(temp, NULL, 10);
+           //offset = (int) strtol(temp, NULL, 10);
           }
         }
         

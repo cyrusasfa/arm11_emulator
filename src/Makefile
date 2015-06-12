@@ -8,6 +8,29 @@ CFLAGS  = -Wall -O2  -g -D_POSIX_SOURCE -D_BSD_SOURCE -std=c99 -Werror -pedantic
 all: assemble emulate
 
 assemble: assemble.o
+	$(CC) assemble.o utility.o tables.o symboltable.o single_data_transfer_a.o data_processing_a.o branch_a.o multiply_a.o -o assemble
+
+assemble.o: symboltable.o branch_a.o multiply_a.o tables.o data_processing_a.o single_data_transfer_a.o utility.o
+		$(CC) $(CFLAGS) assemble.c -c -o assemble.o
+	
+tables.o : symboltable.h symboltable.c tables.c tables.h
+	$(CC) $(CFLAGS) tables.c -c -o tables.o
+
+symboltable.o : symboltable.h
+	$(CC) $(CFLAGS) symboltable.c -c -o symboltable.o
+
+single_data_transfer_a.o : utility.o tables.o symboltable.o data_processing_a.o single_data_transfer_a.c single_data_transfer_a.h
+	$(CC) $(CFLAGS) single_data_transfer_a.c -c -o single_data_transfer_a.o
+
+data_processing_a.o : utility.o symboltable.o tables.o data_processing_a.c data_processing_a.h assemble.h
+	$(CC) $(CFLAGS) data_processing_a.c -c -o data_processing_a.o
+
+branch_a.o : utility.o symboltable.o tables.o branch_a.c branch_a.h
+	$(CC) $(CFLAGS) branch_a.c -c -o branch_a.o
+
+multiply_a.o : utility.o symboltable.o tables.o multiply_a.c multiply_a.h
+	$(CC) $(CFLAGS) multiply_a.c -c -o multiply_a.o
+
 
 emulate:  emulate.o 
 	$(CC) emulate.o execution_cycle.o gpio.o utility.o data_processing.o multiply.o single_data_transfer.o branch.o -o emulate
@@ -35,6 +58,9 @@ branch.o : utility.o branch.c
 
 gpio.o : utility.o gpio.h gpio.c
 	$(CC) $(CFLAGS) gpio.c -c -o gpio.o
+
+
+
 
 clean:
 	rm -rf $(wildcard *.o)
