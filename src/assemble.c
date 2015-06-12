@@ -12,6 +12,14 @@
 
 uint32_t lsl(char *instruction, Map* symbol_table);
 
+uint32_t ldr(char *instruction, Map* symbol_table);
+
+uint32_t str(char *instruction, Map* symbol_table);
+
+uint32_t single_data_transfer(char *instruction, uint32_t machineCode);
+
+uint32_t set_address(char *instruction, uint32_t machineCode);
+
 int main(int argc, char **argv) {
   assert(argc == 3);
   
@@ -73,8 +81,8 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   op_ptrs[9]  = &cmp;
   //op_ptrs[10] = &mul;
   //op_ptrs[11] = &mla;
-  //op_ptrs[12] = &ldr;
-  //op_ptrs[13] = &str;
+  op_ptrs[12] = &ldr;
+  op_ptrs[13] = &str;
   //op_ptrs[14] = &beq;
   //op_ptrs[15] = &bne;
   //op_ptrs[16] = &bge;
@@ -130,5 +138,73 @@ uint32_t lsl(char *instruction, Map* symbol_table) {
   strcat(new, ",lsl");
   strcat(new, instruction);
   strcat(new, "\n");
-  return mov(new, symbol_table);
+  uint32_t result = mov(new, symbol_table);
+  free(new);
+  return result;
+}
+
+uint32_t ldr(char *instruction, Map* symbol_table) {
+  //sets the bits specific to ldr
+  uint32_t result = 0;
+  set_bit(result, 20); //the L bit is set
+  
+  result = single_data_transfer(instruction, result);
+  return result;
+}
+
+uint32_t str(char *instruction, Map* symbol_table) {
+  //sets the bits specific to str
+  uint32_t result = 0;
+  clear_bit(result, 20); //the L bit is cleared
+  
+  result = single_data_transfer(instruction, result);
+  return result;
+}
+
+uint32_t single_data_transfer(char *instruction, uint32_t machineCode) {
+  //sets the generic bits in all single data transfer instructions
+  machineCode = set_field(machineCode, 14, 31, 4); // cond is 1110
+  machineCode = set_field(machineCode, 1, 27, 2); // bits 27-26 are 01s
+  machineCode = set_address(instruction, machineCode);
+  return machineCode;
+}
+
+uint32_t set_address(char *instruction, uint32_t machineCode) {
+  //sets the bits representing address
+    char *Rd = strtok(instruction, ","); 
+    instruction = strtok(NULL, "\0");
+  if (*instruction == '=') { // constant case
+    int value;
+    instruction++;
+    
+    if (*instruction == '0') { //value is in hex
+      value = (int) strtol(instruction, NULL, 0);
+    } 
+    
+    else { // value is decimal
+      value = (int) strtol(instruction, NULL, 10);
+    }
+    
+    if (value < 256) {
+      char * new = (char *) malloc(MAX_LENGTH * sizeof(char));
+      if (new == NULL) {
+        perror("malloc problem in lsl");
+        exit(EXIT_FAILURE);
+      }
+      strcpy(new, Rd);
+      strcat(new, ",#");
+      char val[3];
+      sprintf(val, "%d\n", value);
+      strcat(new, val);
+      uint32_t result = mov(new, NULL);
+      return result;
+    }
+    else {
+    //TODO IMPLEMENT THIS CASE
+    }
+  }
+  
+  else {
+    isntruction++;
+    
 }
