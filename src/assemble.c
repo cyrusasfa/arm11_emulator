@@ -94,12 +94,10 @@ void tokenise_and_assemble(char *instruction, Map* table, FILE *dst) {
   op_ptrs[22] = &andeq;
   
 
- 
+
   char *mnemonic = strtok(instruction, " ");
   instruction = strtok(NULL, "\0");
   remove_spaces(instruction);
-  
-  
   uint32_t machinecode = op_ptrs[look_up(&mnemonic_table, mnemonic)](instruction, table);
   write_to_output(dst, machinecode);
 }
@@ -146,7 +144,7 @@ uint32_t lsl(char *instruction, Map* symbol_table) {
 uint32_t ldr(char *instruction, Map* symbol_table) {
   //sets the bits specific to ldr
   uint32_t result = 0;
-  set_bit(result, 20); //the L bit is set
+  result = set_bit(result, 20); //the L bit is set
   
   result = single_data_transfer(instruction, result);
   return result;
@@ -155,7 +153,7 @@ uint32_t ldr(char *instruction, Map* symbol_table) {
 uint32_t str(char *instruction, Map* symbol_table) {
   //sets the bits specific to str
   uint32_t result = 0;
-  clear_bit(result, 20); //the L bit is cleared
+  result = clear_bit(result, 20); //the L bit is cleared
   
   result = single_data_transfer(instruction, result);
   return result;
@@ -164,16 +162,19 @@ uint32_t str(char *instruction, Map* symbol_table) {
 uint32_t single_data_transfer(char *instruction, uint32_t machineCode) {
   //sets the generic bits in all single data transfer instructions
   machineCode = set_field(machineCode, 14, 31, 4); // cond is 1110
-  machineCode = set_field(machineCode, 1, 27, 2); // bits 27-26 are 01s
+  machineCode = set_field(machineCode, 1, 27, 2); // bits 27-26 are 01
+  machineCode = set_field(machineCode, 0, 23, 2); // bits 23-22 are 00
   machineCode = set_address(instruction, machineCode);
   return machineCode;
 }
 
 uint32_t set_address(char *instruction, uint32_t machineCode) {
-  //sets the bits representing address
+    printf("%s\n", instruction);
+    //sets the bits representing address
     char *Rd = strtok(instruction, ","); 
     instruction = strtok(NULL, "\0");
   if (*instruction == '=') { // constant case
+    machineCode = clear_bit(machineCode, 20);
     int value;
     instruction++;
     
@@ -193,11 +194,12 @@ uint32_t set_address(char *instruction, uint32_t machineCode) {
       }
       strcpy(new, Rd);
       strcat(new, ",#");
-      char val[3];
+      char val[4];
       sprintf(val, "%d\n", value);
       strcat(new, val);
       uint32_t result = mov(new, NULL);
       return result;
+
     }
     else {
     //TODO IMPLEMENT THIS CASE
@@ -205,6 +207,35 @@ uint32_t set_address(char *instruction, uint32_t machineCode) {
   }
   
   else {
-    isntruction++;
+    instruction++;
+    char *temp = strtok(instruction, "]");
+    printf("%s\n",temp);
+    if (strtok(NULL, "\n") == NULL) { // this is the pre index
+      const int Rn = look_up(&registers, strtok(temp, ","));
+      machineCode = set_field(machineCode, Rn, 19, 4); //base reg goes here
+      machineCode = set_bit(machineCode, 24); // P bit is set
+      machineCode = clear_bit(machineCode, 25); // I bit is cleared
+      machineCode = set_bit(machineCode, 23); // U bit is set
+      int offset = 0;
+      temp = strtok(NULL, "\n");
+      if (temp != NULL) {
+        temp++;
+        printf("%s\n",temp);
+        if (*temp == '0') { //value is in hex
+          offset = (int) strtol(temp, NULL, 0);
+        } 
     
+        else { // value is decimal
+         offset = (int) strtol(temp, NULL, 10);
+       }
+      }
+      printf("%d\n", offset);
+      machineCode = set_field(machineCode, offset, 11, 12); //offset in 11-0
+    }
+    else // this is post index
+    {
+    }
+  } 
+  machineCode = set_field(machineCode, look_up(&registers, Rd), 15, 4);
+  return machineCode;
 }
