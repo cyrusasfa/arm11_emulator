@@ -172,7 +172,6 @@ uint32_t single_data_transfer(char *instruction, uint32_t machineCode, Map *tabl
 }
 
 uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int address) {
-    printf("%s\n", instruction);
     //sets the bits representing address
     char *Rd = strtok(instruction, ","); 
     instruction = strtok(NULL, "\0");
@@ -205,16 +204,11 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
     }
     else {
       int pos = ftell(dst);
-      int fs = fseek(dst, look_up(table, "num_lines") * 4, SEEK_END);
+      fseek(dst, look_up(table, "num_lines") * 4, SEEK_SET);
       int adress_val = ftell(dst);
-      printf("POS : %i\n", adress_val);
-      printf("%d\n", fs);
       write_to_output(value);
       fseek(dst, pos, SEEK_SET);
-      printf("num lines is%d\n",look_up(table, "num_lines"));
-      printf("address %d\n", address);
       int offset = (adress_val - (table->size - 2) * 4) - address - PC_DIFF ;
-      printf("offset%d\n", offset);
       machineCode = set_field(machineCode, 15, 19, 4); //base reg is PC and goes here
       machineCode = set_bit(machineCode, 24); // P bit is set
       machineCode = clear_bit(machineCode, 25); // I bit is cleared
@@ -227,8 +221,8 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
   else {
     instruction++;
     char *temp = strtok(instruction, "]");
-    printf("%s\n",temp);
-    if (strtok(NULL, "\n") == NULL) { // this is the pre index
+    instruction = strtok(NULL, "\n");
+    if (instruction == NULL) { // this is the pre index
       const int Rn = look_up(&registers, strtok(temp, ","));
       machineCode = set_field(machineCode, Rn, 19, 4); //base reg goes here
       machineCode = set_bit(machineCode, 24); // P bit is set
@@ -238,21 +232,42 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
       temp = strtok(NULL, "\n");
       if (temp != NULL) {
         temp++;
-        printf("%s\n",temp);
+        if (*temp == '-') {
+            machineCode = clear_bit(machineCode,23);// U bit is cleared
+            temp++;
+        }
+        else if (*temp == '+') {
+            temp++;
+        }
+        
         if (*temp == '0') { //value is in hex
           offset = (int) strtol(temp, NULL, 0);
         } 
     
         else { // value is decimal
          offset = (int) strtol(temp, NULL, 10);
-       }
+        }
       }
-      printf("%d\n", offset);
       machineCode = set_field(machineCode, offset, 11, 12); //offset in 11-0
     }
     else // this is post index
     {
-      
+      printf("temp is %s\n", temp);
+      printf("instruction is %s\n", instruction);
+      const int Rn = look_up(&registers, temp);
+      machineCode = set_field(machineCode, Rn, 19, 4); // base reg here
+      machineCode = clear_bit(machineCode, 24) ; // P bit is 0
+      machineCode = set_bit(machineCode, 23); //U bit is set
+      machineCode = clear_bit(machineCode, 25); // I bit is cleared
+      int offset;
+      instruction++;
+        if (*temp == '0') { //value is in hex
+          offset = (int) strtol(temp, NULL, 0);
+        } 
+    
+        else { // value is decimal
+         offset = (int) strtol(temp, NULL, 10);
+        }
     }
   } 
   machineCode = set_field(machineCode, look_up(&registers, Rd), 15, 4);
@@ -355,7 +370,6 @@ uint32_t branch(char *instr, Map *symbol_table, int address, uint32_t machineCod
 
 
   // need address of current line
-  printf("label is: %s\n", instr);
 
   int offset = look_up(symbol_table, instr) - address - PC_DIFF;
   int signed_offset = offset;
@@ -364,8 +378,6 @@ uint32_t branch(char *instr, Map *symbol_table, int address, uint32_t machineCod
   } 
   int mask = ((1 << 30) - 1) >> 4;
   signed_offset &= mask;
-  printf("address is: %x\n", address);
-  printf("offset is: %d\n", offset);
   signed_offset &= mask;
   // offset <<= 25;
   // offset = set_field(offset, offset, 25, 26);
