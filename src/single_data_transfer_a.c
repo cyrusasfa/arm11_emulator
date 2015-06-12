@@ -72,11 +72,14 @@ uint32_t set_address(char *instruction, uint32_t machineCode, Map* table, int ad
     }
     else {
       int pos = ftell(dst);
+      printf("pos%d\n", pos);
       fseek(dst, look_up(table, "num_lines") * 4, SEEK_SET);
-      int adress_val = ftell(dst);
+      int address_val = ftell(dst);
+      printf("adress%d\n", address);
+      printf("%d\n", address_val);
       write_to_output(value);
       fseek(dst, pos, SEEK_SET);
-      int offset = (adress_val - (table->size - 2) * 4) - address - PC_DIFF ;
+      int offset = (address_val - (table->size - 2) * 4) - address - PC_DIFF ;
       machineCode = set_field(machineCode, 15, 19, 4); //base reg is PC and goes here
       machineCode = set_bit(machineCode, 24); // P bit is set
       machineCode = clear_bit(machineCode, 25); // I bit is cleared

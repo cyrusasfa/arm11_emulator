@@ -268,7 +268,7 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
 
 }
 
-uint32_t lsl(char *instruction, Map* symbol_table, int address) {
+uint32_t lsl_assemble(char *instruction, Map* symbol_table, int address) {
   
   char * new = (char *) malloc(MAX_LENGTH * sizeof(char));
   if (new == NULL) {
