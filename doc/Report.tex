@@ -3,19 +3,103 @@
 \usepackage{fullpage}
 
 \begin{document}
-
-\title{Our Extension...}
-\author{TODO}
-
-\maketitle
-
+	
+	\title{ARM-11 Project Final Report - Group 5}
+	\author{Mihai Barbu, Daniel Grumberg, Amin Karamlou, Cyrus Vahidi}
+	
+	\maketitle
+	
 \section{Introduction}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+This report outlines our work during the Summer Term C Project. We were required to implement an emulator and assembler for the reduced instruction set of the ARM11 architecture. Following this, we needed to write an assembly program that ran on the Raspberry Pi made a LED flash on and off. We were then given the opportunity to make an extension for our project.
 
+\section{Emulator}
+
+The first part of the project was to implement an emulator for the provided subset of ARM11 architecture instructions. We were required to implement this using a three-stage pipeline in order to represent the workings of the processor more accurately. We chose to represent the stages of the pipeline using a structure, whose members were a function pointer to the instruction to be executed, a pointer to a 32 bit unsigned integer that served as an argument list to instruction to be executed, a pointer to a 32 bit unsigned integer to store the fetched instruction, and a 1 bit field that served as a halt flag. We also needed to represent the current state of the emulated machine. To do so we implemented another structure which had an array of 8 bit unsigned integers to represent the main memory, an array of 32 bit unsigned integers to represent the registers, and two booleans to keep track of the carryouts produced by the ALU and the shifter.
+
+The emulate.c file had the core emulation functions. More precisely this file handled initialising the machine state, loading the program in main memory, executing the pipeline, and outputting the machine state.
+
+We also wrote a C file that dealt with the execution of the pipeline. The functions contained in this file served the purpose of fetching the next instruction from main memory, recognising the instruction type of the current instruction, and checking the CPSR register according to the condition field of the current instruction.
+
+For each instruction type we wrote a file that processed the arguments accordingly, and that decided the operation to be executed in the next pipeline cycle.
+
+Furthermore we wrote a small utility library that provided functions for reading specific bits of a number, clearing and setting specific bits of a number, and also for the different shifting operations the instruction handling required.
+
+\section{Assembler}
+
+Part two required us to create an assembler for ARM11 source files, translating them into binary files that can be executed by the emulator. We structured the assembly by performing a ‘two-pass’ of the given source file. To do this, we built a data structure to accommodate a symbol table, which we used to map labels to their corresponding memory addresses during the first pass of our assembly. We also stored the number of expected output lines in this symbol table. 
+
+For the symbol table, we opted for a static array based list, using an array of strings for the label’s strings (the keys), and an array of integer for the label’s associated addresses (the values). Fetching a label’s associated address could be done by locating its index in the array of strings and then accessing this same index in the array of addresses, since insertion was done by putting a label’s string and its address at the same index. The initial space for the symbol table was 50. Space reallocation was done using realloc, which was performed when the number of elements in the symbol table reached full capacity  and this capacity was doubled. 
+We also did a dynamic linked-list implementation, however, some design features we used were better supported and much cleaner when using the array-based implementation, hence we finalised on the initial implementation. We could easily define constant sized tables for use across our program. 
+For example, we created some constant tables to be used in the assembly of the binary files, all of which used the same data structure that we created for the symbol table. These were a table to associate register strings and their numbers and mappings from mnemonic strings to values. 
+
+The table for registers allowed us to easily set fields when executing the assembly, as we could simply access the corresponding integer of any register string that we tokenised by using a look up in the register table that we defined. 
+
+Mapping the strings of every mnemonic to individual values ranging from 0 to 23 enabled us to use function pointers rather than a large switch statement when executing the assembly. We could look up the mnemonic of an ARM11 instruction in this table and pass the returned index to an array of function pointers, containing each mnemonic’s necessary function in the position corresponding to the value retrieved from the table. We found this solution to be very neat and readable. 
+
+The second pass of the ARM11 source file tokenises each instruction and executes the assembly of them along the way. We tokenised the mnemonic and called the corresponding function in the way described above. Initially we used a structure to store tokenised instructions. However, it appeared to be easier to just pass the assembly instruction to each instruction’s function after removing the mnemonic from its beginning, as the different rules of tokenisation were easier to handle separately. According to the instruction type, we could simply tokenise each assembly instruction’s argument that followed the mnemonic and set the necessary fields of the 32-bit assembled binary code.
+
+For each instruction type we treated its conditions using separate functions. We tried to make the functions for the assembly of every condition adhere to a uniform structure, where we set the fields of the 32-bit binary instruction according to the cases that were specific to each condition, then we called one generic function for the instruction type concerned, which handled setting the fields that are the same for every condition. For example, the mov function will set the bits specific to itself and then call a function called data processing that sets the bits that are uniform for all data processing instructions. By doing so we avoid code duplication 
+
+We are aware that there is currently a lot of code duplication in assemble, however, we aim to fix this and the code style of our assembler in time for the final product. Furthermore, we are also aiming to make optimisations, such as using a Hash Map for the symbol table data structure implementation, due to its high efficiency when handling large data sets.
+
+\section{GPIO}
+
+Firstly, we extended the emulator to detect GPIO accesses and pin-setting to facilitate testing. We then wrote the program for making the Raspberry Pi’s LED repeatedly flash on and off, compiling it using the assembler and tested it using the emulator to check that the pins were configured correctly. We then replaced kernel.img on our SD card with our own assembled version.
+
+\section{Testing}
+
+We mainly tested our emulator and assembler using the provided test suite, in an incremental manner. Additionally, we tested any utility functions we used, by either using an output file to match our output to an expected output or by producing a main and monitoring the behaviour of variables and matching its output to our expected output. We found this form of testing quite effective - whenever we encountered a failed test, we could check the behaviour of functions and edit them accordingly. 
+
+When working on the assembler we compared our own binary file output to the expected output, which gave us a closer view on where we encountered problems when setting fields of the binary instruction, hence we could narrow down the problem and fix it relatively easily and figure out deficiencies in our code.
+
+We often used print statements when debugging, which helped monitor the state of variables on execution and visualise where our problems were, however, in future it would be preferable to become proficient in using the gdb debugger, as this would a much more efficient means of debugging.
+
+\section{Group Reflection}
+
+Programming as a group was a novel experience for us and despite the numerous challenges it raised we found it to be a pleasant experience. On beginning the project we did not designate tasks to each team member, hence we found it difficult to pick up speed. We worked together on creating the initial structure, which was quite an inefficient strategy as not every team member could fully grasp the concepts of the project and how it was going to work. 
+When we first came to designating tasks to team members we did not do this specifically enough, and as a result the work of some team members overlapped and there was confusion regarding who was to complete certain tasks, resulting in some of the tasks not being completed in the time frame we expected. It would be very useful to create a text document that clearly outlines the tasks of each member so that confusion can never arise and all team members can always be aware of what they are to complete.
+
+Our ability to communicate has improved vastly since the initial stages of the project.  We began to  stage meetings to monitor and discuss one another’s progress and to arise any issues. We found that informing one another of the progress of the completion of our tasks very useful, as it allowed us to know where the code stands and whether we could utilise each another’s code for testing purpose and managing the structure of our files. We kept in touch daily and whenever we felt a team member was falling behind on our personally set time frames, we encouraged them to expedite their production of code. Encouragement from one another was very useful in speeding up the completion of tasks and giving a sense of urgency when required. It was also very useful that we could aid one another on certain tasks when unable to produce a solution. This showed that every member was able to handle different aspects of the projects specification and understood the task at hand.
+
+Our git usage strategy was also flawed when starting the project. We had not made use of branch features, thus we faced merge conflicts on the master branch. We resolved our problems by arranging imminent meetings and distinctly outlining our strategies and tasks. We opted for a git branch per feature, which we merged upon completion of a task that has working code that passes its tests. In the end, we used git much more proficiently and the project has developed our ability to use git when working in a group and has demonstrated its power and utility. There is room for improvement in our git usage ability, however we would continue to operate this great tool in a similar way.
+
+We found it somewhat difficult to keep our code style uniform, as we had not agreed on formatting and naming conventions. This led to one group member having to spend too much time refactoring the code upon completion of a section of the project. In future, we realise that it will be important to outline the code style regulations in order to save time when it comes to refactoring. Additionally, spending time on creating a well-defined plan and structure for approaching the project would be very worth the time and effort as it would save a lot of time in future that could be wasted refactoring and reimplementing code.
+
+
+\section{Individual Reflections}  
+
+\subsection{Cyrus}
+
+In the group I could easily communicate and stay in contact with other group members as we were already acquainted with each other and I found it easy to arrange meetings with group members regarding the project. I found that my biggest difficulty was making the team aware of our tasks and what I was undertaking, which at times caused a lot of confusion. Before the project I believed I would be more organised, however, it turned out that I failed to coordinate the group efficiently enough. 
+
+The first WebPA was motivating as it made me aware of deficiencies and encouraged me to exert more effort. I feel my sense of urgency could have been greater in order to aid the progress of the group and to give us more time to deliver better code and a higher quality extension. 
+
+Regarding code, I believe I should focus on producing efficient code when writing it for the first time, rather than writing an  implementation in full and modifying it several times. Furthermore, when beginning the project I sometimes altered other group member’s code in order to suit my own style, however I should have left this for them to work on, or outlined a uniform code style for the team to adhere to from the beginning of the project. I feel that I spent too much time altering my implementations rather than progressing with other tasks. As we progressed with the project my C-programming ability improved and I was able to produce well working code much more efficiently that adhered to the structure of our code.
+
+Additionally, I found it difficult to debug my code at first as I was not acquainted with C output or gdb. The project was very useful in developing my debugging capability, yet not being proficient in debugging slowed down my progress. I feel I could have tested the code I produced in a more effective manner - at times I encountered errors that I did not take into account in my code which affected other team member’s code and slowed down our progress.
+
+The next time I work in a group I shall take into great account the importance of coordination and organisation among group members. Every team member should be fully aware of what they need to carry out and needs to dedicate what they work on to the task that they have subjectively been set. I now believe working to deadlines set within a group as well as academic deadlines are important for improving the overall progress and quality of a project.
+
+\subsection{Daniel}
+I was very eager to undertake the project in full swing and immediately begun outlining the structure and approach to realising it. Initially I carried out more of the implementation than my teammates, as I wanted to have a base for us to work from. It then became difficult as I was more aware than my teammates of the task to be carried out, so I was not able to carry out as much implementation as I would have liked to while waiting for them to grasp the task at hand. 
+I realise that working as a group requires me to balance the work between group members and communication of what I have completed. 
+
+At times, I did not communicate enough and felt the need to rewrite code that was already written in my own style, however, for efficiency it is important to allow group members to do equal amounts of work. As we progressed I focussed on handling and perfecting the emulator, while my teammates moved onto the assembler in order to further our progress. I worked significantly on the emulator and implemented the structure in a way I felt was best. 
+
+When working in a group again I would make sure that we try to distribute the workload as equally as possible, as this maximises our efficiency and allows all team members to be fully involved in understanding the implementation. I also believe setting deadlines to finish certain tasks is not an optimal way of maintaining a good pace of work, instead I think a better system involves meeting up in order to assess progress and then decide on the most urgent implementation points so that they can be addressed as soon as possible.
+
+\subsection{Amin}
+Despite having regular meetings I feel we could have outlined our plans better and informed one another of the tasks we were undertaking. The lack of clear communication in the initial stages of the project caused confusion and slow progress in the project.
+It would have benefitted me to learn to code C better before starting to work on the project, as initially I was not content with the code I was producing and had to reproduce a lot of it. I also feel that I should have balanced my workload better, so as to avoid working under pressure before our deadlines and be able to produce neater code.
+
+\subsection{Mihai}
+My main problem with working in this team was our failure in the beginning to clearly assign tasks to group members. For example, some work being carried out overlapped between group members and left us unsure of what was still needed to be completed and we had not informed one another of what tasks we had completed, which left some tasks incomplete. We resolved the issues and were able to proceed with the project in a more forward way as we had more organisation. I found my ability to program in C good and I often produced very good and useful utility functions for the team to perform specific things, however, I was sometimes unable to integrate these into the task, due to not always understanding what the project’s specification required. Additionally I left the review of my code and its style until after writing large blocks of code, which was inefficient as it required lots of debugging, refactoring and style changes to adhere to the team’s code style and structure. Paying attention to style and structure would have provided more readable code to my teammates.
+
+\section{Extension}  
+
+As an extension we are going to implement a binary count down from 7 to 0 with LED lights, which will use our emulator, assembler and the Raspberry Pi’s GPIO for its execution. Currently we have been experiencing problems with the proper state sequencing of lighting the LEDs to the correct binary pattern and counting down in the correct order, however, we can light the LEDs successfully. If we have extra time left after doing this we will aim to do a more complicated extension as well. At the moment we are considering making a version of Conway's Game of Life using an LED board.
+
+	
+	
 \end{document}

@@ -3,23 +3,23 @@
 \usepackage{fullpage}
 
 \begin{document}
-
-\title{ARM-11 Project Checkpoint Report - Group 5}
-\author{Mihai Barbu, Daniel Grumberg, Amin Karamlou, Cyrus Vahidi}
-
-\maketitle
-
-\section{Group Organisation}
-
-Initially, the team worked together on setting up and initialising the machine in order to understand the task and the layout of our code. We collectively decided how to structure the machine and  Daniel carried out the loading and fetching of instructions to and from memory.
-Following this, we could begin processing instructions  we allocated each instruction type around the group. Data Processing Instructions were handled by Mihai, Single Data Transfer Instructions by Cyrus, Branch Instructions by Daniel and Multiply Instructions by Amin. The work was split, however, we all communicated and aided each other when programming. For example, Daniel and Amin cooperated a lot on loading and fetching instructions from memory and decoding. Cyrus was able to reuse code written by Mihai for the Data Processing Instructions when writing code to handle Single Data Transfer Instructions. 
-Initially we found the group work difficult, as we were not very coordinated in carrying out and splitting up the tasks and utilising Git as none of our group members have ever worked in a group on a large coding project. However, we arranged some meetings in order to overcome these problems and outline our approach to splitting up the working and effectively using Git to control and merge our work. We are currently meeting daily and communicating via chat mediums in order to monitor one another's progress, discuss different implementation details and outline the next steps for the projects.
-
-\section{Implementation Strategies}
-
-So far we are slightly slow on producing well-formatted and working code as we are unfamiliar with C. Additionally, we need to split our code across different files in order to have a readable and manageable code base. Furthermore, our Git strategy as been somewhat inefficient so far. To solve this issue we need to commit as a group to a branching strategy. Currently we are planning to move towards a branch-per-feature strategy. On a positive note, we set ourselves deadlines for certain objectives and we are beginning to work more efficiently. For the assembler section, we have taken note to approach it in a more systematical way. We shall lay out our design and tasks much more clearly and accurately than we did for the emulator, use Git more effective and allocate distinct tasks to each member in order to mitigate confusion among the team.
-
-Currently we have structured the emulator using 2 global arrays for the memory and registers. The main memory is represented as one dimensional array of constant width unsigned 8 bit integers. The registers are simulated by an army of 17 constant width unsigned 32 bit integers. At the moment we have a dedicated function, which is called in the beginning of the main to initialise these arrays. The main memory’s contents are being dynamically allocated on the heap, whereas the content of the register array are stored on the stack. With our improving knowledge of the C language we are considering creating a struct to store those two arrays instead of leaving them as global variables. Currently all the functions required by the program are written in the emulate.c file although we are very shortly going to split up the contents in multiple files to help with the managing of our code base. To help with scalability and reusability of our code we use as little “magic” numbers as possible, instead we use preprocessor macros to define constants that are being used throughout the code base. 
-We have not yet outlined how we are going to approach part II of the task. We shall use a few techniques that we used in part I such as an array of function pointers to call operations with greater efficiency. We are arranging a meeting, at which we shall fully outline a plan to carry out the task, assigning objectives to each group member and enforcing a Git version control strategy. We also need to tidy up our code for the emulator and organise code across multiple files. We are currently testing the emulator and making improvements.
-
+	
+	\title{ARM-11 Project Checkpoint Report - Group 5}
+	\author{Mihai Barbu, Daniel Grumberg, Amin Karamlou, Cyrus Vahidi}
+	
+	\maketitle
+	
+	\section{Group Organisation}
+	
+	Initially, the team worked together on setting up and initialising the machine in order to understand the task and the layout of our code. We collectively decided how to structure the machine and  Daniel carried out the loading and fetching of instructions to and from memory.
+	Following this, we could begin processing instructions  we allocated each instruction type around the group. Data Processing Instructions were handled by Mihai, Single Data Transfer Instructions by Cyrus, Branch Instructions by Daniel and Multiply Instructions by Amin. The work was split, however, we all communicated and aided each other when programming. For example, Daniel and Amin cooperated a lot on loading and fetching instructions from memory and decoding. Cyrus was able to reuse code written by Mihai for the Data Processing Instructions when writing code to handle Single Data Transfer Instructions. 
+	Initially we found the group work difficult, as we were not very coordinated in carrying out and splitting up the tasks and utilising Git as none of our group members have ever worked in a group on a large coding project. However, we arranged some meetings in order to overcome these problems and outline our approach to splitting up the working and effectively using Git to control and merge our work. We are currently meeting daily and communicating via chat mediums in order to monitor one another's progress, discuss different implementation details and outline the next steps for the projects.
+	
+	\section{Implementation Strategies}
+	
+	So far we are slightly slow on producing well-formatted and working code as we are unfamiliar with C. Additionally, we need to split our code across different files in order to have a readable and manageable code base. Furthermore, our Git strategy as been somewhat inefficient so far. To solve this issue we need to commit as a group to a branching strategy. Currently we are planning to move towards a branch-per-feature strategy. On a positive note, we set ourselves deadlines for certain objectives and we are beginning to work more efficiently. For the assembler section, we have taken note to approach it in a more systematical way. We shall lay out our design and tasks much more clearly and accurately than we did for the emulator, use Git more effective and allocate distinct tasks to each member in order to mitigate confusion among the team.
+	
+	Currently we have structured the emulator using 2 global arrays for the memory and registers. The main memory is represented as one dimensional array of constant width unsigned 8 bit integers. The registers are simulated by an army of 17 constant width unsigned 32 bit integers. At the moment we have a dedicated function, which is called in the beginning of the main to initialise these arrays. The main memory’s contents are being dynamically allocated on the heap, whereas the content of the register array are stored on the stack. With our improving knowledge of the C language we are considering creating a struct to store those two arrays instead of leaving them as global variables. Currently all the functions required by the program are written in the emulate.c file although we are very shortly going to split up the contents in multiple files to help with the managing of our code base. To help with scalability and reusability of our code we use as little “magic” numbers as possible, instead we use preprocessor macros to define constants that are being used throughout the code base. 
+	We have not yet outlined how we are going to approach part II of the task. We shall use a few techniques that we used in part I such as an array of function pointers to call operations with greater efficiency. We are arranging a meeting, at which we shall fully outline a plan to carry out the task, assigning objectives to each group member and enforcing a Git version control strategy. We also need to tidy up our code for the emulator and organise code across multiple files. We are currently testing the emulator and making improvements.
+	
 \end{document}
