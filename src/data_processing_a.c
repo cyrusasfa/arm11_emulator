@@ -231,7 +231,7 @@ uint32_t set_operand2(char  *instruction, uint32_t machineCode) {
       shift[i] = *operand2;
       operand2++;
     }
-    
+    printf("%s\n", shift);
     int shift_code = look_up(&shift_table, shift);
     machineCode = set_field(machineCode, shift_code, 6, 2);
     
