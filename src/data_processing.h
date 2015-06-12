@@ -2,10 +2,14 @@
 #define DATA_PROCESSING_H
 #include "machine.h"
 
-void process_args(uint32_t instr,struct pipeline *pip,  struct machine_state *mach);
 
-void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state 
-                      *mach);
+#define INST_LGTH (32)
+
+void process_args(uint32_t instr,struct pipeline *pip, 
+												                          struct machine_state *mach);
+
+void decode_data_proc(uint32_t instr, struct pipeline *pip, 
+											                           	struct machine_state *mach);
 
 uint32_t ror(int reg, int shiftvalue, struct machine_state *mach);
 

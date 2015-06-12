@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+
 #define MAX_LENGTH (512)
 struct Tokenised {
    char* label;
@@ -25,7 +26,7 @@ int main(int argc, char **argv) {
   const char* dstname = argv[2];
   
   FILE *src;
-  FILE * dst;
+  FILE *dst;
   
   src = fopen(srcname, "r");
   dst = fopen(dstname, "wb");
@@ -59,7 +60,7 @@ int getnumlines(FILE* src) {
 }
 void tokenise(struct Tokenised *parsedinput, FILE* src) {
   char line[MAX_LENGTH];
-  for (int i = 0; fgets(line, MAX_LENGTH, src); i++) {
+  for (int i = 0; fgets(line, MAX_LENGTH, src); ++i) {
     parsedinput[i].label = strtok(line, ":");
     printf("%s\n", parsedinput[i].label);
   }

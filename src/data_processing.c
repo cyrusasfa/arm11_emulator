@@ -8,7 +8,7 @@
 #include "utility.h"
 #include "data_processing.h"
 
-#define INST_LGTH (32)
+
 void set_flags_logic(struct machine_state *mach, uint32_t res) {
   if(mach->shifter_carryout) {     
     mach->registers[16] = set_bit(mach->registers[16], 29);//Set C flag
@@ -70,9 +70,10 @@ void sub(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 }
 
 void rsb(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
-  uint32_t tmp = args[1];
+  uint32_t tmp  = args[1];
   uint32_t tmp0 = mach->registers[args[0]];
-  args[1] = tmp0;
+  args[1]       = tmp0;
+
   mach->registers[args[0]] = tmp;
   sub(args, mach, pip);
   mach->registers[args[0]] = tmp0;
@@ -81,7 +82,8 @@ void rsb(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 void add(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   uint32_t res = mach->registers[args[0]] + args[1];
   //Overflow check
-  if(mach->registers[args[0]] > 0 && args[1] > ((pow(2,31) - 1) - mach->registers[args[0]])) {
+  if(mach->registers[args[0]] > 0 && args[1] > 
+    ((pow(2,31) - 1) - mach->registers[args[0]])) {
     mach->alu_carryout = true; 
   }
   mach->registers[args[2]] = res;
@@ -127,6 +129,7 @@ void orr(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 void mov(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
   mach->registers[args[2]] = args[1];
   uint32_t res = mach->registers[args[2]];
+
   if(args[3] == 1) {
     set_flags_logic(mach, res);
   }
@@ -135,10 +138,10 @@ void mov(uint32_t* args, struct machine_state *mach, struct pipeline *pip) {
 
 void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
    *mach) {
-  uint32_t rn = extract_bits(instr, 16, 4);
-  uint32_t rd = extract_bits(instr, 12, 4);
-  uint32_t o2 = extract_bits(instr,0, 12);
-  bool imm = read_bit(instr, 25);
+  uint32_t rn    = extract_bits(instr, 16, 4);
+  uint32_t rd    = extract_bits(instr, 12, 4);
+  uint32_t o2    = extract_bits(instr, 0, 12);
+  bool imm       = read_bit(instr, 25);
   uint32_t flagS = read_bit(instr, 20);
 
   uint32_t (*shift_ptr[4]) (int x, int y, struct machine_state *mach);
@@ -151,29 +154,31 @@ void process_args(uint32_t instr,struct pipeline *pip, struct machine_state
     o2 = ror(extract_bits(instr,0, 8), 2 * extract_bits(instr, 8, 4), mach);
   } 
   if (!imm && read_bit(instr,4)) {
-    int reg = extract_bits(instr, 0, 4);
+    int reg   = extract_bits(instr, 0, 4);
     int shift = extract_bits(instr, 5, 2);
     int sregv = extract_bits(mach->registers[extract_bits(instr, 8, 4)], 0, 7);
-    o2 = (*shift_ptr[shift]) (mach->registers[reg], sregv, mach); 
+    o2        = (*shift_ptr[shift]) (mach->registers[reg], sregv, mach); 
   } 
   if (!imm && !read_bit(instr, 4)) {
-    int reg = extract_bits(instr, 0, 4);
-    int shift = extract_bits(instr, 5, 2);
+    int reg     = extract_bits(instr, 0, 4);
+    int shift   = extract_bits(instr, 5, 2);
     uint8_t val = extract_bits(instr, 7, 5);
-    o2 = (*shift_ptr[shift]) (mach->registers[reg], val, mach);
+    o2          = (*shift_ptr[shift]) (mach->registers[reg], val, mach);
   }
 
   pip->decoded_args = (uint32_t*) malloc(4* sizeof(int32_t));
-  *(pip->decoded_args) = rn;
+
+  *(pip->decoded_args)     = rn;
   *(pip->decoded_args + 1) = o2;
   *(pip->decoded_args + 2) = rd;
   *(pip->decoded_args + 3) = flagS;
 }
 
 
-void decode_data_proc(uint32_t instr, struct pipeline *pip, struct machine_state
-                        *mach) {
-  void (*op_ptrs[14]) (uint32_t* args, struct machine_state *mach, struct pipeline*);
+void decode_data_proc(uint32_t instr, struct pipeline *pip, 
+                                                struct machine_state *mach) {
+  void (*op_ptrs[14]) (uint32_t* args, struct machine_state *mach, 
+                                                          struct pipeline*);
 
   op_ptrs[0]  = &and;
   op_ptrs[1]  = &eor;

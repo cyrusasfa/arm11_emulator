@@ -11,11 +11,13 @@ struct trans_instr {
   unsigned int immediate : 1;
 };
 
-uint32_t* get_address(uint32_t instr, struct pipeline *pip, struct machine_state *mach);
+uint32_t* get_address(uint32_t instr, struct pipeline *pip, 
+                                                  struct machine_state *mach);
 
-void transfer (uint32_t* args, struct machine_state *mach, struct pipeline *pip);
+void transfer (uint32_t* args, struct machine_state *mach,
+                                                       struct pipeline *pip);
 
 void decode_data_trans(uint32_t instr, struct pipeline *pip, 
-    struct machine_state *mach);
+                                                  struct machine_state *mach);
 
 #endif

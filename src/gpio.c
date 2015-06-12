@@ -13,6 +13,7 @@
 #define SET_P (0x2020001c)
 #define CLR_P (0x20200028)
 
+
 void GPIO_access (struct machine_state *mach, uint32_t* args ) {
 	switch (args[1]) {
 		case (F_PIN_S) :
@@ -46,13 +47,13 @@ void GPIO_write(struct machine_state *mach, uint32_t *args) {
 	    break;
     case (CLR_P) :
       printf("PIN OFF\n");
-      break;
+     	break;
     default :
       printf("ERROR\n");
   }  
 }
 
 bool check_address(uint32_t address) {
-  return
-  (address >= F_PIN_S && address <= F_PIN_E) || address == CLR_P || address == SET_P; 
-}
+  return (address >= F_PIN_S && address <= F_PIN_E) || 
+          address == CLR_P || address == SET_P; 
+} 
