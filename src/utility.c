@@ -107,3 +107,22 @@ void put_mem(struct machine_state *mach, uint32_t *args) {
   }
 }
 
+
+uint32_t set_field(uint32_t instr, int value, int end, int length) {
+  value <<= (end - length + 1);
+  instr |= value;
+  return instr;
+}
+
+void remove_spaces(char* source)
+{
+  char* i = source;
+  char* j = source;
+  while(*j != 0)
+  {
+    *i = *j++;
+    if(*i != ' ')
+      i++;
+  }
+  *i = 0;
+}
